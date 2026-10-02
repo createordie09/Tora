@@ -1,0 +1,109 @@
+{
+  "name": "tora",
+  "productName": "Tora",
+  "version": "1.0.0",
+  "description": "Tora — un navigateur rapide qui protège votre vie privée",
+  "author": "Tora",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev:electron": "concurrently -k \"vite --port=3000 --host=0.0.0.0\" \"npm run electron:dev\"",
+    "electron:dev": "wait-on tcp:3000 && node scripts/prepare-electron.mjs && cross-env NODE_ENV=development electron .",
+    "build": "vite build && node scripts/prepare-electron.mjs",
+    "preview": "vite preview",
+    "clean": "rimraf dist dist-electron release",
+    "lint": "tsc --noEmit && tsc -p electron",
+    "test": "vitest run --exclude **/dist-electron/** --exclude release/**",
+    "test:e2e": "npm run build && vitest run --config vitest.e2e.config.ts",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux"
+  },
+  "dependencies": {
+    "@ghostery/adblocker-electron": "^2.18.2",
+    "cross-fetch": "^4.1.0",
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.9",
+    "sql.js": "^1.14.2"
+  },
+  "devDependencies": {
+    "@fontsource/outfit": "^5.3.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^22.14.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@types/sql.js": "^1.4.11",
+    "@vitejs/plugin-react": "^5.0.4",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^10.0.5",
+    "cross-env": "^10.1.0",
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.25.0",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "playwright-core": "^1.63.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3",
+    "vitest": "^3.0.7",
+    "wait-on": "^9.1.0"
+  },
+  "build": {
+    "appId": "com.tora.browser",
+    "productName": "Tora",
+    "copyright": "Copyright © Tora",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json",
+      "resources/icon.png"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "shortcutName": "Tora"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "resources/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Network;WebBrowser",
+      "icon": "resources/icon.png"
+    }
+  }
+}

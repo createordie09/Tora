@@ -1,0 +1,98 @@
+@import "tailwindcss";
+@import "@fontsource/outfit/300.css";
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/600.css";
+
+/* Design tokens — Tora is dark-only by design (no light theme). */
+@theme {
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --color-surface-0: #050505;
+  --color-surface-1: #121212;
+  --color-surface-2: #1a1a1a;
+  --color-surface-3: #222222;
+  --color-line: #2a2a2a;
+  --color-line-strong: #5a5a5a;
+  --color-ink: #e5e5e5;
+  --color-muted: #a1a1a1;
+  --color-subtle: #949494;
+}
+
+
+html { color-scheme: dark; }
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #050505;
+}
+
+.app-region-drag {
+  -webkit-app-region: drag;
+}
+
+.app-region-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Global: scrollbars stay fully functional (scroll still works normally)
+   but are invisible everywhere in Tora's own interface (panels, new-tab page,
+   tab strip). This does NOT affect the content of visited websites, which
+   render in a separate isolated BrowserView, not in this stylesheet. */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Accessibility safety net: when the OS-level "reduce motion" preference is on, this
+   catches EVERY CSS transition/animation in the app — including any Tailwind
+   `transition-*`/`animate-*` utility that isn't (or hasn't yet been) migrated to the
+   `motion` library. Framer Motion respects this preference on its own for anything built
+   with it, so between the two nothing in Tora ever forces movement on someone who has
+   asked their system not to. Kept to near-zero rather than literally 0ms/no-transition so
+   state changes (hover, focus) still resolve, just without perceptible motion.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Visible keyboard focus everywhere (WCAG 2.4.7). Mouse focus stays unobtrusive. */
+:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+}
+/* Text fields and search bars: no coloured ring. Focus is shown by a lighter border
+   (still clearly visible, WCAG 2.4.7 / 1.4.11), which keeps the dark interface calm. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: #b5b5b5;
+}
+.focus-ring-within:focus-within {
+  outline: none;
+  border-color: #b5b5b5;
+}
+.focus-ring-within input:focus-visible {
+  outline: none;
+  border-color: transparent;
+}
