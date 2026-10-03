@@ -46,7 +46,7 @@ Mot de passe: ${persona.password}`;
           aria-modal="true"
           aria-labelledby="persona-modal-title"
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md bg-[#121216]/95 border border-white/10 rounded-2xl shadow-2xl p-6 text-ink backdrop-blur-2xl relative"
+          className="w-full max-w-md bg-surface-1/95 border border-white/10 rounded-2xl shadow-2xl p-6 text-ink backdrop-blur-2xl relative"
         >
           <button
             type="button"
@@ -73,7 +73,7 @@ Mot de passe: ${persona.password}`;
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <User size={15} className="text-muted shrink-0" />
                 <div className="text-left overflow-hidden">
-                  <div className="text-[10px] text-muted uppercase font-semibold">Nom complet</div>
+                  <div className="text-[12px] text-muted uppercase font-semibold">Nom complet</div>
                   <div className="text-[13px] text-white font-medium truncate">{persona.fullName}</div>
                 </div>
               </div>
@@ -93,7 +93,7 @@ Mot de passe: ${persona.password}`;
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <Mail size={15} className="text-muted shrink-0" />
                 <div className="text-left overflow-hidden">
-                  <div className="text-[10px] text-muted uppercase font-semibold">Adresse email jetable</div>
+                  <div className="text-[12px] text-muted uppercase font-semibold">Adresse email jetable</div>
                   <div className="text-[13px] text-indigo-300 font-mono truncate">{persona.email}</div>
                 </div>
               </div>
@@ -113,7 +113,7 @@ Mot de passe: ${persona.password}`;
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <KeyRound size={15} className="text-muted shrink-0" />
                 <div className="text-left overflow-hidden">
-                  <div className="text-[10px] text-muted uppercase font-semibold">Mot de passe fort généré</div>
+                  <div className="text-[12px] text-muted uppercase font-semibold">Mot de passe fort généré</div>
                   <div className="text-[13px] text-emerald-400 font-mono truncate">{persona.password}</div>
                 </div>
               </div>

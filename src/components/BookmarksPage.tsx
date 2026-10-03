@@ -44,7 +44,7 @@ export default function BookmarksPage() {
   }, [bookmarks, searchQuery]);
 
   return (
-    <motion.div {...popIn} className="flex-1 overflow-y-auto bg-[#050505]">
+    <motion.div {...popIn} className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-5xl mx-auto px-10 py-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
@@ -59,7 +59,7 @@ export default function BookmarksPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher..."
                 aria-label="Rechercher dans les favoris"
-                className="w-full h-9 pl-9 pr-8 bg-[#121212] border border-[#5A5A5A] rounded-lg text-[12px] text-ink placeholder-subtle focus:outline-none focus:border-indigo-500/50"
+                className="w-full h-9 pl-9 pr-8 bg-surface-1 border border-line-strong rounded-lg text-[12px] text-ink placeholder-subtle focus:outline-none focus:border-indigo-500/50"
               />
               <Search size={14} className="absolute left-3 top-2.5 text-subtle" aria-hidden="true" />
               {searchQuery && (
@@ -98,7 +98,7 @@ export default function BookmarksPage() {
                   key={b.id}
                   layout
                   {...cardHover}
-                  className="group relative rounded-xl bg-[#101014] border border-white/5 hover:border-indigo-500/20 focus-within:border-indigo-500/40 transition-colors"
+                  className="group relative rounded-xl bg-surface-1 border border-white/5 hover:border-indigo-500/20 focus-within:border-indigo-500/40 transition-colors"
                 >
                   <button
                     type="button"
@@ -106,10 +106,10 @@ export default function BookmarksPage() {
                     aria-label={`Ouvrir ${b.title || b.url} dans un nouvel onglet`}
                     className="flex flex-col w-full p-3.5 text-left rounded-xl cursor-pointer"
                   >
-                    <span className="w-9 h-9 rounded-lg bg-[#161616] border border-[#242424] flex items-center justify-center mb-2.5 shrink-0">
+                    <span className="w-9 h-9 rounded-lg bg-surface-1 border border-line flex items-center justify-center mb-2.5 shrink-0">
                       <Favicon src={b.favicon} size={15} />
                     </span>
-                    <span className="text-[12px] text-ink font-medium truncate pr-4">{b.title || b.url}</span>
+                    <span className="text-[12px] text-ink font-medium line-clamp-2 break-words pr-4">{b.title || b.url}</span>
                     <span className="text-[12px] text-subtle truncate mt-0.5 font-mono">{b.url}</span>
                   </button>
                   <motion.button
@@ -117,7 +117,7 @@ export default function BookmarksPage() {
                     type="button"
                     onClick={(e) => handleDelete(e, b)}
                     title="Supprimer"
-                    aria-label="Supprimer ce favori"
+                    aria-label={`Supprimer le favori « ${b.title || b.url} »`}
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 p-2 rounded-md text-muted hover:bg-white/10 hover:text-red-400 transition-all"
                   >
                     <Trash2 size={13} />

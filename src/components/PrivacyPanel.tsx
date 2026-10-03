@@ -44,7 +44,7 @@ export default function PrivacyPanel({ tab, settings, domain, onClose }: Privacy
         role="dialog"
         aria-label="Protections de Tora sur ce site"
         style={{ originX: 0, originY: 0 }}
-        className="absolute top-full mt-2 left-0 w-80 z-50 bg-[#121216] border border-[#5A5A5A] rounded-2xl shadow-2xl overflow-hidden text-[13px] text-ink"
+        className="absolute top-full mt-2 left-0 w-80 z-50 bg-surface-1 border border-line-strong rounded-2xl shadow-2xl overflow-hidden text-[13px] text-ink"
       >
         <div className="px-4 pt-4 pb-3 border-b border-white/10">
           <div className="flex items-start justify-between gap-3">
@@ -88,7 +88,7 @@ export default function PrivacyPanel({ tab, settings, domain, onClose }: Privacy
           <button
             type="button"
             onClick={() => { window.tora?.createTab('tora://extensions'); onClose(); }}
-            className="w-full h-9 rounded-lg bg-[#1E1E1E] hover:bg-[#282828] border border-[#5A5A5A] text-[12px] font-medium text-muted hover:text-white transition-colors"
+            className="w-full h-9 rounded-lg bg-surface-2 hover:bg-surface-3 border border-line-strong text-[12px] font-medium text-muted hover:text-white transition-colors"
           >
             Gérer toutes les protections
           </button>

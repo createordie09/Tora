@@ -14,7 +14,7 @@ export default function WindowControls() {
       <button
         type="button"
         onClick={() => window.tora?.minimizeWindow()}
-        className="h-8 w-10 flex items-center justify-center text-muted hover:bg-[#222] hover:text-ink transition-colors"
+        className="h-8 w-10 flex items-center justify-center text-muted hover:bg-surface-3 hover:text-ink transition-colors"
         aria-label="Réduire"
         title="Réduire"
       >
@@ -23,7 +23,7 @@ export default function WindowControls() {
       <button
         type="button"
         onClick={() => window.tora?.maximizeWindow()}
-        className="h-8 w-10 flex items-center justify-center text-muted hover:bg-[#222] hover:text-ink transition-colors"
+        className="h-8 w-10 flex items-center justify-center text-muted hover:bg-surface-3 hover:text-ink transition-colors"
         aria-label={isMaximized ? 'Restaurer' : 'Agrandir'}
         title={isMaximized ? 'Restaurer' : 'Agrandir'}
       >

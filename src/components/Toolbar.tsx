@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, RotateCw, X, Shield, Menu, Star, BookOpen, Download, Loader2, Lock, LockOpen, ShieldAlert, Search, Globe, Clock, EyeOff, Boxes } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, X, Shield, Menu, Star, BookOpen, Lock, LockOpen, ShieldAlert, Search, Globe, Clock, EyeOff, Boxes } from 'lucide-react';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { TabData, ToraSettings, Suggestion } from '../types';
@@ -19,7 +19,6 @@ interface ToolbarProps {
 
 export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, onOpenQrCode, onOpenFakePersona }: ToolbarProps) {
   const [inputUrl, setInputUrl] = useState('');
-  const [isExtracting, setIsExtracting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -123,26 +122,6 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
     }
   };
 
-  const handleDownloadVideo = async () => {
-    if (!activeTab || isExtracting) return;
-    setIsExtracting(true);
-    showToast("Recherche du flux vidéo en cours...", "info");
-    try {
-      const res = await window.tora?.downloadVideo(activeTab.url);
-      if (res?.ok) {
-        showToast("Téléchargement de la vidéo démarré !", "success");
-      } else if (res?.message) {
-        showToast(res.message, "error");
-      } else {
-        showToast("Téléchargement initié.", "success");
-      }
-    } catch {
-      showToast("Échec de l'extraction de la vidéo", "error");
-    } finally {
-      setIsExtracting(false);
-    }
-  };
-
   const handleToggleBookmark = () => {
     if (!activeTab) return;
     const willBeBookmarked = !activeTab.isBookmarked;
@@ -186,7 +165,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
     : "Bloqueur désactivé (cliquez pour activer)";
 
   return (
-    <div className="flex items-center h-14 px-5 bg-[#0A0A0A]/85 backdrop-blur-xl border-b border-white/10 app-region-no-drag shadow-lg">
+    <div className="flex items-center h-14 px-5 bg-surface-0/85 backdrop-blur-xl border-b border-white/10 app-region-no-drag shadow-lg select-none">
       <div className="flex items-center space-x-2 mr-4 text-muted">
         <motion.button
           {...iconButtonPress}
@@ -219,7 +198,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
       </div>
 
       <div className="relative flex-1 min-w-[140px]">
-      <form onSubmit={handleSubmit} className="w-full flex items-center h-10 px-4 bg-[#121212]/90 border border-[#5A5A5A] rounded-full text-[13px] text-ink focus-ring-within transition-all duration-200">
+      <form onSubmit={handleSubmit} className="w-full flex items-center h-10 px-4 bg-surface-1/90 border border-line-strong rounded-full text-[13px] text-ink focus-ring-within transition-all duration-200">
         <button
           type="button"
           aria-label={`Protections de Tora${hasBlocks ? ` : ${totalBlocks} élément${totalBlocks > 1 ? 's' : ''} bloqué${totalBlocks > 1 ? 's' : ''}` : ''}`}
@@ -230,14 +209,14 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
           onClick={() => setPrivacyOpen(open => !open)}
         >
           {settings?.isAdBlockEnabled ? (
-            <div className={`flex items-center space-x-1.5 px-2.5 h-6 rounded-lg transition-colors ${hasBlocks ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : 'bg-[#1A1A1A] hover:bg-[#2A2A2A]'}`}>
+            <div className={`flex items-center space-x-1.5 px-2.5 h-6 rounded-lg transition-colors ${hasBlocks ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : 'bg-surface-2 hover:bg-surface-3'}`}>
               <Shield size={13} className={hasBlocks ? 'text-indigo-400' : 'text-muted'} fill={hasBlocks ? 'currentColor' : 'none'} />
               {hasBlocks && (
                  <span className="text-[12px] font-semibold text-indigo-300">{totalBlocks}</span>
               )}
             </div>
           ) : (
-            <div className="flex items-center space-x-1.5 px-2.5 h-6 rounded-lg hover:bg-[#1A1A1A] transition-colors">
+            <div className="flex items-center space-x-1.5 px-2.5 h-6 rounded-lg hover:bg-surface-2 transition-colors">
               <Shield size={13} className="text-subtle" />
             </div>
           )}
@@ -303,23 +282,6 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
           </button>
         )}
 
-        {isRealPage && settings?.isMediaDownloadEnabled !== false && (
-          <button
-            type="button"
-            aria-label="Extraire et télécharger la vidéo"
-            title={isExtracting ? "Extraction en cours..." : "Extraire & Télécharger la vidéo"}
-            disabled={isExtracting}
-            onClick={handleDownloadVideo}
-            className={`p-1.5 mr-1 rounded-lg transition-colors shrink-0 group ${isExtracting ? 'bg-emerald-500/30' : 'hover:bg-emerald-500/20'}`}
-          >
-            {isExtracting ? (
-              <Loader2 size={14} className="text-emerald-400 animate-spin" />
-            ) : (
-              <Download size={14} className="text-emerald-400 group-hover:scale-110 transition-transform" />
-            )}
-          </button>
-        )}
-
         {isRealPage && (
           <button
             type="button"
@@ -342,7 +304,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
           id={listboxId}
           role="listbox"
           aria-label="Suggestions"
-          className="absolute left-0 right-0 top-full mt-2 z-40 bg-[#121216] border border-[#5A5A5A] rounded-2xl shadow-2xl p-1.5 overflow-hidden"
+          className="absolute left-0 right-0 top-full mt-2 z-40 bg-surface-1 border border-line-strong rounded-2xl shadow-2xl p-1.5 overflow-hidden"
         >
           {suggestions.map((sugg, i) => {
             const Icon = sugg.kind === 'search' ? Search : sugg.kind === 'bookmark' ? Star : sugg.kind === 'history' ? Clock : Globe;

@@ -6,6 +6,9 @@ import Favicon from './Favicon';
 import { popIn, cardHover, buttonPress } from '../lib/motion';
 import CardGridSkeleton from './CardGridSkeleton';
 import InlineError from './InlineError';
+import { useUndoableDelete } from '../hooks/useUndoableDelete';
+import { useAutoReset } from '../hooks/useAutoReset';
+import Button from './Button';
 
 function formatBytes(bytes: number): string {
   if (!bytes || bytes < 0) return '0 o';
@@ -20,6 +23,10 @@ export default function DownloadsPage() {
   const [downloads, setDownloads] = useState<DownloadItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [hidden, setHidden] = useState<string[]>([]);
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
+  useAutoReset(confirmCancelId, null, () => setConfirmCancelId(null), 4000);
+  const undoableDelete = useUndoableDelete();
 
   const load = () => {
     setLoading(true);
@@ -36,10 +43,39 @@ export default function DownloadsPage() {
     return () => unsub?.();
   }, []);
 
-  const hasFinished = downloads.some(d => d.state !== 'progressing');
+  const visible = downloads.filter(d => !hidden.includes(d.id));
+  const hasFinished = visible.some(d => d.state !== 'progressing');
+
+  const removeFromList = (dl: DownloadItem) => {
+    if (dl.state === 'progressing') {
+      // Cancelling a running download cannot be undone: ask first.
+      if (confirmCancelId !== dl.id) { setConfirmCancelId(dl.id); return; }
+      setConfirmCancelId(null);
+      window.tora?.removeDownload(dl.id);
+      return;
+    }
+    undoableDelete(
+      `download:${dl.id}`,
+      `« ${dl.filename} » retiré de la liste`,
+      () => setHidden(prev => [...prev, dl.id]),
+      () => setHidden(prev => prev.filter(id => id !== dl.id)),
+      () => { window.tora?.removeDownload(dl.id); },
+    );
+  };
+
+  const clearList = () => {
+    const ids = visible.filter(d => d.state !== 'progressing').map(d => d.id);
+    undoableDelete(
+      'downloads:clear',
+      `${ids.length} téléchargement${ids.length > 1 ? 's' : ''} retiré${ids.length > 1 ? 's' : ''} de la liste`,
+      () => setHidden(prev => [...prev, ...ids]),
+      () => setHidden(prev => prev.filter(id => !ids.includes(id))),
+      () => { window.tora?.clearDownloads(); },
+    );
+  };
 
   return (
-    <motion.div {...popIn} className="flex-1 overflow-y-auto bg-[#050505]">
+    <motion.div {...popIn} className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-5xl mx-auto px-10 py-16">
         <div className="flex items-start justify-between gap-4 mb-10">
           <div>
@@ -47,13 +83,7 @@ export default function DownloadsPage() {
             <p className="text-[13px] text-muted">Fichiers téléchargés depuis vos onglets</p>
           </div>
           {hasFinished && (
-            <button
-              type="button"
-              onClick={() => window.tora?.clearDownloads()}
-              className="mt-2 text-[12px] font-medium px-3 py-2 bg-[#161616] hover:bg-[#1E1E1E] rounded-lg border border-[#5A5A5A] text-muted hover:text-white transition-colors shrink-0"
-            >
-              Vider la liste
-            </button>
+            <Button onClick={clearList} className="mt-2 shrink-0">Vider la liste</Button>
           )}
         </div>
 
@@ -64,36 +94,38 @@ export default function DownloadsPage() {
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
             <AnimatePresence mode="popLayout">
-              {downloads.map(dl => {
+              {visible.map(dl => {
                 const inProgress = dl.state === 'progressing';
                 const failed = dl.state === 'interrupted' || dl.state === 'cancelled';
+                const canOpen = dl.state === 'completed' && !!dl.path && !dl.missing;
+                const hasActions = inProgress || canOpen || (failed && dl.source === 'browser');
                 const percent = dl.totalBytes > 0 ? Math.min(100, (dl.receivedBytes / dl.totalBytes) * 100) : 0;
                 return (
                   <motion.div
                     key={dl.id}
                     layout
                     {...cardHover}
-                    className="flex flex-col p-3.5 rounded-xl bg-[#101014] border border-white/5 hover:border-indigo-500/20 transition-colors"
+                    className="flex flex-col p-3.5 rounded-xl bg-surface-1 border border-white/5 hover:border-indigo-500/20 transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="relative w-9 h-9 mb-2.5 shrink-0">
-                        <div className="w-9 h-9 rounded-lg bg-[#161616] border border-[#242424] flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-lg bg-surface-1 border border-line flex items-center justify-center">
                           <Favicon src={dl.favicon} size={15} />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#121212] border border-[#242424] flex items-center justify-center">
-                          {dl.state === 'completed' ? (dl.missing ? <FileX size={9} className="text-amber-400" aria-label="Fichier introuvable" /> : <FileCheck size={9} className="text-indigo-400" aria-label="Terminé" />) :
-                           inProgress ? (dl.paused ? <Pause size={9} className="text-amber-400" aria-label="En pause" /> : <Loader2 size={9} className="text-indigo-400 animate-spin" aria-label="En cours" />) :
-                           <AlertCircle size={9} className="text-red-400" aria-label={dl.state === 'cancelled' ? 'Annulé' : 'Échec du téléchargement'} />}
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-surface-1 border border-line flex items-center justify-center" role="img" aria-label={dl.state === 'completed' ? (dl.missing ? 'Fichier introuvable' : 'Terminé') : inProgress ? (dl.paused ? 'En pause' : 'En cours') : dl.state === 'cancelled' ? 'Annulé' : 'Échec du téléchargement'}>
+                          {dl.state === 'completed' ? (dl.missing ? <FileX size={9} className="text-amber-400" /> : <FileCheck size={9} className="text-indigo-400" />) :
+                           inProgress ? (dl.paused ? <Pause size={9} className="text-amber-400" /> : <Loader2 size={9} className="text-indigo-400 animate-spin" />) :
+                           <AlertCircle size={9} className="text-red-400" aria-hidden="true" />}
                         </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => window.tora?.removeDownload(dl.id)}
-                        aria-label={`Retirer ${dl.filename} de la liste`}
+                        onClick={() => removeFromList(dl)}
+                        aria-label={confirmCancelId === dl.id ? `Confirmer l'annulation de ${dl.filename}` : `Retirer ${dl.filename} de la liste`}
                         title={inProgress ? 'Annuler et retirer' : 'Retirer de la liste'}
-                        className={iconButton}
+                        className={confirmCancelId === dl.id ? 'text-[12px] font-medium px-2 py-1.5 rounded bg-red-700 text-white' : iconButton}
                       >
-                        <X size={13} />
+                        {confirmCancelId === dl.id ? 'Annuler ?' : <X size={13} />}
                       </button>
                     </div>
 
@@ -108,7 +140,7 @@ export default function DownloadsPage() {
                           aria-valuemin={0}
                           aria-valuemax={100}
                           aria-valuenow={Math.round(percent)}
-                          className="w-full bg-[#0A0A0A] h-1 mt-2 rounded-full overflow-hidden border border-[#222]"
+                          className="w-full bg-surface-0 h-1 mt-2 rounded-full overflow-hidden border border-line"
                         >
                           <div className="bg-indigo-500 h-full transition-all duration-300" style={{ width: `${percent}%` }} />
                         </div>
@@ -128,6 +160,7 @@ export default function DownloadsPage() {
                       <span className="text-[12px] text-amber-400 mt-1.5">Le fichier a été déplacé ou supprimé</span>
                     )}
 
+                    {hasActions && (
                     <div className="flex items-center gap-1 mt-2.5 pt-2.5 border-t border-white/5">
                       {inProgress && dl.source === 'browser' && (
                         <motion.button
@@ -160,7 +193,7 @@ export default function DownloadsPage() {
                           onClick={() => window.tora?.retryDownload(dl.id)}
                           aria-label={`Réessayer ${dl.filename}`}
                           title="Réessayer"
-                          className="flex items-center gap-1.5 text-[12px] font-medium px-2 py-1.5 bg-[#1E1E1E] hover:bg-[#282828] rounded-md border border-[#5A5A5A] text-muted hover:text-white transition-colors"
+                          className="flex items-center gap-1.5 text-[12px] font-medium px-2 py-1.5 bg-surface-2 hover:bg-surface-3 rounded-md border border-line-strong text-muted hover:text-white transition-colors"
                         >
                           <RotateCw size={12} /> Réessayer
                         </motion.button>
@@ -182,16 +215,14 @@ export default function DownloadsPage() {
                             {...buttonPress}
                             onClick={() => window.tora?.openItem(dl.path)}
                             aria-label={`Ouvrir le fichier ${dl.filename}`}
-                            className="text-[12px] font-medium px-2.5 py-1.5 bg-[#1E1E1E] hover:bg-[#282828] rounded-md transition-colors border border-[#5A5A5A] text-muted hover:text-white"
+                            className="text-[12px] font-medium px-2.5 py-1.5 bg-surface-2 hover:bg-surface-3 rounded-md transition-colors border border-line-strong text-muted hover:text-white"
                           >
                             Ouvrir
                           </motion.button>
                         </>
                       )}
-                      {!inProgress && !(dl.state === 'completed' && dl.path && !dl.missing) && !(failed && dl.source === 'browser') && (
-                        <span className="sr-only">Aucune action disponible</span>
-                      )}
                     </div>
+                    )}
                   </motion.div>
                 );
               })}
@@ -199,7 +230,7 @@ export default function DownloadsPage() {
           </div>
         )}
 
-        {!loading && !error && downloads.length === 0 && (
+        {!loading && !error && visible.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-muted">
             <DownloadCloud size={32} className="mb-4 opacity-50" strokeWidth={1.5} aria-hidden="true" />
             <p className="text-[13px] font-medium">Aucun téléchargement récent</p>

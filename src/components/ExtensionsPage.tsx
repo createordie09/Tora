@@ -5,6 +5,7 @@ import { cardHover, buttonPress } from '../lib/motion';
 import { ToraSettings, InstalledExtension } from '../types';
 import Switch from './Switch';
 import InlineError from './InlineError';
+import { useAutoReset } from '../hooks/useAutoReset';
 
 interface ExtensionsPageProps {
   settings: ToraSettings;
@@ -17,6 +18,7 @@ export default function ExtensionsPage({ settings }: ExtensionsPageProps) {
   const [error, setError] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  useAutoReset(confirmDeleteId, null, () => setConfirmDeleteId(null), 4000);
 
   const load = () => {
     setLoading(true);
@@ -61,7 +63,6 @@ export default function ExtensionsPage({ settings }: ExtensionsPageProps) {
   const handleDeleteExt = async (id: string) => {
     if (confirmDeleteId !== id) {
       setConfirmDeleteId(id);
-      setTimeout(() => setConfirmDeleteId(prev => (prev === id ? null : prev)), 4000);
       return;
     }
     setConfirmDeleteId(null);
@@ -70,7 +71,7 @@ export default function ExtensionsPage({ settings }: ExtensionsPageProps) {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#050505]">
+    <div className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-2xl mx-auto px-10 py-16">
         <h1 className="text-[28px] font-semibold text-white mb-1 font-display">Protections & Extensions</h1>
         <p className="text-[13px] text-muted mb-10">Modules de protection et extensions Chrome installées dans Tora</p>
@@ -102,18 +103,18 @@ export default function ExtensionsPage({ settings }: ExtensionsPageProps) {
 
         <div className="space-y-2 mb-10">
           {loading ? (
-            <div role="status" aria-label="Chargement des extensions…" className="h-[72px] rounded-xl bg-[#101014] border border-white/5 animate-pulse" />
+            <div role="status" aria-label="Chargement des extensions…" className="h-[72px] rounded-xl bg-surface-1 border border-white/5 animate-pulse" />
           ) : error ? (
             <InlineError message="Impossible de charger les extensions." onRetry={load} />
           ) : extensions.length === 0 ? (
-            <div className="p-6 rounded-2xl bg-[#101014] border border-white/5 text-center text-muted text-[13px]">
+            <div className="p-6 rounded-2xl bg-surface-1 border border-white/5 text-center text-muted text-[13px]">
               Aucune extension Chrome installée. Cliquez sur "Installer une Extension Chrome" pour charger un dossier décompressé avec manifest.json.
             </div>
           ) : (
             extensions.map(ext => (
-              <motion.div key={ext.id} {...cardHover} className="flex items-center justify-between p-4 rounded-xl bg-[#101014] border border-white/5 hover:border-indigo-500/20 transition-colors">
+              <motion.div key={ext.id} {...cardHover} className="flex items-center justify-between p-4 rounded-xl bg-surface-1 border border-white/5 hover:border-indigo-500/20 transition-colors">
                 <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#161616] border border-[#222] flex items-center justify-center shrink-0 text-indigo-400">
+                  <div className="w-10 h-10 rounded-xl bg-surface-1 border border-line flex items-center justify-center shrink-0 text-indigo-400">
                     <Puzzle size={18} />
                   </div>
                   <div className="flex flex-col">
@@ -180,9 +181,9 @@ export default function ExtensionsPage({ settings }: ExtensionsPageProps) {
 
 function ToggleItem({ icon, title, sub, active, onChange }: { icon: React.ReactNode; title: string; sub: string; active: boolean; onChange: () => void }) {
   return (
-    <motion.div {...cardHover} className="flex items-center justify-between group p-4 rounded-xl bg-[#101014] border border-white/5 hover:border-indigo-500/20 transition-colors">
+    <motion.div {...cardHover} className="flex items-center justify-between group p-4 rounded-xl bg-surface-1 border border-white/5 hover:border-indigo-500/20 transition-colors">
       <div className="flex items-center space-x-4">
-        <div className={`w-10 h-10 rounded-xl bg-[#161616] border border-[#222] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors shrink-0 ${active ? 'text-indigo-400' : 'text-muted'}`}>
+        <div className={`w-10 h-10 rounded-xl bg-surface-1 border border-line flex items-center justify-center group-hover:bg-surface-2 transition-colors shrink-0 ${active ? 'text-indigo-400' : 'text-muted'}`}>
           {icon}
         </div>
         <div className="flex flex-col">

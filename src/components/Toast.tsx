@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { slideUp } from '../lib/motion';
@@ -8,6 +8,8 @@ export interface ToastItem {
   message: string;
   type?: 'success' | 'error' | 'info';
   action?: { label: string; onClick: () => void };
+  /** Short-lived: safe to lift the page view while it shows. */
+  brief?: boolean;
 }
 
 export interface ToastOptions {
@@ -39,10 +41,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const pauseTimer = (id: string) => clearTimeout(timers.current[id]);
 
+  // The native page view is stacked above this layer: while a toast is on screen, lift the page
+  // (shown as a frozen snapshot, like for menus) so the message is never hidden behind it.
+  // Long-lived toasts (e.g. "update ready") must not freeze the page for 15 s, so they don't lift it.
+  const hasToasts = toasts.some(t => t.brief);
+  useEffect(() => {
+    window.tora?.setOverlayActive('toast', hasToasts);
+    return () => { window.tora?.setOverlayActive('toast', false); };
+  }, [hasToasts]);
+
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success', options?: ToastOptions) => {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
-    setToasts(prev => [...prev.slice(-3), { id, message, type, action: options?.action }]); // Keep at most 4 toasts
-    startTimer(id, options?.duration ?? (options?.action ? 6000 : 3200));
+    const duration = options?.duration ?? (options?.action ? 6000 : 3200);
+    setToasts(prev => [...prev.slice(-3), { id, message, type, action: options?.action, brief: duration <= 7000 }]); // Keep at most 4 toasts
+    startTimer(id, duration);
   }, [startTimer]);
 
   return (
@@ -61,7 +73,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               onMouseLeave={() => startTimer(toast.id, 2000)}
               onFocus={() => pauseTimer(toast.id)}
               onBlur={() => startTimer(toast.id, 2000)}
-              className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-[#18181B]/95 border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-xl text-[13px] text-ink max-w-sm"
+              className="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-2/95 border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-xl text-[13px] text-ink max-w-sm"
             >
               {toast.type === 'success' && <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />}
               {toast.type === 'error' && <AlertCircle size={16} className="text-red-400 shrink-0" />}

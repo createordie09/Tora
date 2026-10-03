@@ -57,11 +57,11 @@ export default function PasswordEditModal({ credential, onClose, onSaved }: Pass
         aria-modal="true"
         aria-labelledby="edit-credential-title"
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#161616] border border-[#2A2A2A] rounded-2xl shadow-2xl w-[420px] max-w-[calc(100vw-32px)] max-h-[calc(100vh-48px)] overflow-y-auto p-6"
+        className="bg-surface-1 border border-line rounded-2xl shadow-2xl w-[420px] max-w-[calc(100vw-32px)] max-h-[calc(100vh-48px)] overflow-y-auto p-6"
       >
         <div className="flex items-center justify-between mb-1">
           <h2 id="edit-credential-title" className="text-[15px] font-semibold text-white">Modifier l'identifiant</h2>
-          <button type="button" onClick={onClose} aria-label="Fermer" className="text-muted hover:text-white p-1.5 rounded hover:bg-[#2A2A2A]"><X size={16} /></button>
+          <button type="button" onClick={onClose} aria-label="Fermer" className="text-muted hover:text-white p-1.5 rounded hover:bg-surface-3"><X size={16} /></button>
         </div>
         <p className="text-[12px] text-muted mb-4 truncate">{credential.domain}</p>
 
@@ -72,7 +72,7 @@ export default function PasswordEditModal({ credential, onClose, onSaved }: Pass
             value={username}
             onChange={(e) => { setUsername(e.target.value); setError(null); }}
             autoComplete="off"
-            className="w-full h-10 px-3 bg-[#0A0A0A] border border-[#5A5A5A] rounded-lg text-[13px] text-ink mb-3"
+            className="w-full h-10 px-3 bg-surface-0 border border-line-strong rounded-lg text-[13px] text-ink mb-3"
           />
 
           <label htmlFor="edit-password" className="block text-[12px] font-medium text-ink mb-1.5">Nouveau mot de passe</label>
@@ -85,9 +85,9 @@ export default function PasswordEditModal({ credential, onClose, onSaved }: Pass
               placeholder="Laisser vide pour conserver l'actuel"
               autoComplete="new-password"
               aria-describedby="edit-password-hint"
-              className="flex-1 min-w-0 h-10 px-3 bg-[#0A0A0A] border border-[#5A5A5A] rounded-lg text-[13px] text-ink placeholder-subtle"
+              className="flex-1 min-w-0 h-10 px-3 bg-surface-0 border border-line-strong rounded-lg text-[13px] text-ink placeholder-subtle"
             />
-            <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="h-10 w-10 flex items-center justify-center rounded-lg border border-[#5A5A5A] text-muted hover:text-white hover:bg-white/5 transition-colors shrink-0">
+            <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} className="h-10 w-10 flex items-center justify-center rounded-lg border border-line-strong text-muted hover:text-white hover:bg-white/5 transition-colors shrink-0">
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           </div>
@@ -102,7 +102,7 @@ export default function PasswordEditModal({ credential, onClose, onSaved }: Pass
             <Wand2 size={13} aria-hidden="true" /> Générer un mot de passe fort
           </button>
           {showGenerator && (
-            <div className="mb-4 p-4 rounded-xl bg-[#101014] border border-white/10">
+            <div className="mb-4 p-4 rounded-xl bg-surface-1 border border-white/10">
               <PasswordGenerator
                 useLabel="Utiliser ce mot de passe"
                 onUse={(generated) => { setPassword(generated); setShowPassword(true); setShowGenerator(false); }}

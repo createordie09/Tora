@@ -41,15 +41,15 @@ export default function SettingsPage({ settings }: SettingsPageProps) {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#050505]">
+    <div className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-2xl mx-auto px-10 py-16">
         <h1 className="text-[28px] font-semibold text-white mb-1 font-display">Paramètres</h1>
         <p className="text-[13px] text-muted mb-10">Protections de navigation de Tora</p>
 
         <div className="space-y-2">
-          <motion.div {...cardHover} className="flex items-center justify-between group p-4 rounded-xl bg-[#101014] border border-white/5 hover:border-indigo-500/30 transition-colors shadow-sm">
+          <motion.div {...cardHover} className="flex items-center justify-between group p-4 rounded-xl bg-surface-1 border border-white/5 hover:border-indigo-500/30 transition-colors shadow-sm">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-xl bg-[#161616] border border-[#222] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-surface-1 border border-line flex items-center justify-center group-hover:bg-surface-2 transition-colors shrink-0">
                 <Shield size={18} className="text-muted group-hover:text-indigo-400 transition-colors" />
               </div>
               <div className="flex flex-col">
@@ -64,9 +64,9 @@ export default function SettingsPage({ settings }: SettingsPageProps) {
             />
           </motion.div>
 
-          <div className="flex items-center justify-between group p-4 rounded-xl hover:bg-[#121212] transition-colors border border-transparent hover:border-[#222]">
+          <div className="flex items-center justify-between group p-4 rounded-xl hover:bg-surface-1 transition-colors border border-transparent hover:border-line">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-xl bg-[#161616] border border-[#222] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-surface-1 border border-line flex items-center justify-center group-hover:bg-surface-2 transition-colors shrink-0">
                 <ShieldAlert size={18} className="text-muted group-hover:text-indigo-400 transition-colors" />
               </div>
               <div className="flex flex-col">
@@ -87,9 +87,9 @@ export default function SettingsPage({ settings }: SettingsPageProps) {
           Performances & Moteur Turbo
         </h2>
         <div className="space-y-2">
-          <div className="flex items-center justify-between group p-4 rounded-xl hover:bg-[#121212] transition-colors border border-transparent hover:border-[#222]">
+          <div className="flex items-center justify-between group p-4 rounded-xl hover:bg-surface-1 transition-colors border border-transparent hover:border-line">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-xl bg-[#161616] border border-[#222] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-surface-1 border border-line flex items-center justify-center group-hover:bg-surface-2 transition-colors shrink-0">
                 <Download size={18} className="text-muted group-hover:text-indigo-400 transition-colors" />
               </div>
               <div className="flex flex-col">
@@ -104,9 +104,9 @@ export default function SettingsPage({ settings }: SettingsPageProps) {
             />
           </div>
 
-          <div className="flex items-center justify-between group p-4 rounded-xl hover:bg-[#121212] transition-colors border border-transparent hover:border-[#222]">
+          <div className="flex items-center justify-between group p-4 rounded-xl hover:bg-surface-1 transition-colors border border-transparent hover:border-line">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-xl bg-[#161616] border border-[#222] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-surface-1 border border-line flex items-center justify-center group-hover:bg-surface-2 transition-colors shrink-0">
                 <Film size={18} className="text-muted group-hover:text-indigo-400 transition-colors" />
               </div>
               <div className="flex flex-col">
@@ -124,9 +124,9 @@ export default function SettingsPage({ settings }: SettingsPageProps) {
 
         <h2 className="text-[13px] font-semibold text-muted uppercase tracking-wider mt-10 mb-3 px-1">Apparence</h2>
         <div className="space-y-2">
-          <div className="flex items-center justify-between group p-4 rounded-xl hover:bg-[#121212] transition-colors border border-transparent hover:border-[#222]">
+          <div className="flex items-center justify-between group p-4 rounded-xl hover:bg-surface-1 transition-colors border border-transparent hover:border-line">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-xl bg-[#161616] border border-[#222] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-surface-1 border border-line flex items-center justify-center group-hover:bg-surface-2 transition-colors shrink-0">
                 <PanelLeft size={18} className="text-muted group-hover:text-indigo-400 transition-colors" />
               </div>
               <div className="flex flex-col">
@@ -152,7 +152,7 @@ export default function SettingsPage({ settings }: SettingsPageProps) {
         <ClearDataSection />
 
         <h2 className="text-[13px] font-semibold text-muted uppercase tracking-wider mt-10 mb-3 px-1">Importer depuis Chrome</h2>
-        <div className="p-5 rounded-2xl bg-[#121212] border border-[#222] space-y-3">
+        <div className="p-5 rounded-2xl bg-surface-1 border border-line space-y-3">
           <div className="flex items-center space-x-3 mb-1">
             <Chrome size={16} className="text-muted" aria-hidden="true" />
             <span className="text-[13px] text-muted">Récupère vos données depuis Chrome installé sur cette machine (Windows uniquement).</span>
@@ -162,7 +162,7 @@ export default function SettingsPage({ settings }: SettingsPageProps) {
               type="button"
               onClick={handleImportBookmarks}
               disabled={importBusy !== null}
-              className="flex-1 h-9 flex items-center justify-center gap-2 text-[12px] font-medium bg-[#1E1E1E] hover:bg-[#282828] disabled:opacity-50 border border-[#5A5A5A] rounded-lg text-muted hover:text-white transition-colors"
+              className="flex-1 h-9 flex items-center justify-center gap-2 text-[12px] font-medium bg-surface-2 hover:bg-surface-3 disabled:opacity-50 border border-line-strong rounded-lg text-muted hover:text-white transition-colors"
             >
               {importBusy === 'bookmarks' && <Loader2 size={13} className="animate-spin" />}
               Importer les favoris
@@ -171,7 +171,7 @@ export default function SettingsPage({ settings }: SettingsPageProps) {
               type="button"
               onClick={handleImportPasswords}
               disabled={importBusy !== null}
-              className="flex-1 h-9 flex items-center justify-center gap-2 text-[12px] font-medium bg-[#1E1E1E] hover:bg-[#282828] disabled:opacity-50 border border-[#5A5A5A] rounded-lg text-muted hover:text-white transition-colors"
+              className="flex-1 h-9 flex items-center justify-center gap-2 text-[12px] font-medium bg-surface-2 hover:bg-surface-3 disabled:opacity-50 border border-line-strong rounded-lg text-muted hover:text-white transition-colors"
             >
               {importBusy === 'passwords' && <Loader2 size={13} className="animate-spin" />}
               Importer les mots de passe

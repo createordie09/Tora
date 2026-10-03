@@ -3,6 +3,14 @@
 **Méthode.** (1) Lecture du code de `src/` et des points d'entrée d'`electron/main.ts`. (2) Interface réelle lancée dans Chromium (Vite + API `window.tora` simulée), 11 écrans à 1280×800, plus 640×480, 480×400, onglets verticaux, 18 onglets, bannières. (3) axe-core (WCAG 2.0 à 2.2 AA + bonnes pratiques) et script de mesure maison : contraste calculé avec fusion des transparences, tailles de texte, cibles, ordre de tabulation.
 **Limite.** Electron n'a pas été lancé : ce qui dépend de la `BrowserView` native est marqué *(déduit du code)*.
 
+> **Statut :** tous les points ci-dessous ont été traités dans la même PR, sauf :
+> - **#3 (scrollbars masquées)** : choix assumé, conservé tel quel.
+> - **#20 (échelle de l'interface)** : non faite. Un zoom CSS de l'interface décalerait la `BrowserView`, car les hauteurs d'en-tête sont codées dans `electron/main.ts`. Le support `forced-colors` est ajouté.
+> - **#18 (design system)** : fonds et bordures migrés vers les tokens (il ne reste que 3 teintes spécifiques). Le composant `Button` existe et sert à 7 endroits ; les autres boutons restent à migrer progressivement.
+> - **#9** : le mot de passe de session OS avant l'affichage d'un mot de passe n'est pas demandé (nécessite le processus principal).
+> - **#7** : la saisie d'une URL dans la palette n'est pas ajoutée.
+> - **#6 (toasts)**, **#2** et l'e2e (`includeHidden` pour les boutons « Fermer l'onglet », désormais cachés aux lecteurs d'écran) sont à valider dans Electron, qui n'a pas pu être lancé ici.
+
 ## Bilan : ce qui est réellement corrigé
 
 Vérifié en rendu : **0 échec de contraste** sur les 10 écrans internes (le seul cas détecté est un bouton `disabled`, donc exempté), focus visible partout, libellés sur les icônes, états chargement/erreur/vide, annulation des suppressions, page d'erreur réseau avec « Réessayer », `lang="fr"`, polices locales, taille minimale de fenêtre (640×480), `prefers-reduced-motion`. Aucun débordement horizontal à 640 px. Les lacunes qui restent sont d'une autre nature : **structure ARIA, comportements aux limites, sécurité perçue, cohérence**.

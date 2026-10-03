@@ -813,7 +813,7 @@ function createTab(window: BrowserWindow, url = '', containerId?: string) {
     id,
     view,
     url,
-    title: isInternalUrl(url) ? (INTERNAL_TITLES[url] || 'Tora') : (url ? 'Loading...' : 'New Tab'),
+    title: isInternalUrl(url) ? (INTERNAL_TITLES[url] || 'Tora') : (url ? 'Chargement…' : 'Nouvel onglet'),
     isLoading: !!url && !isInternalUrl(url),
     canGoBack: false,
     canGoForward: false,
@@ -1883,7 +1883,7 @@ ipcMain.on('set-tab-group-color', (e, id: string, color: string | null) => {
 function showInternalPage(win: BrowserWindow | null, tab: Tab, url: string) {
   tab.isParked = true;
   tab.url = url;
-  tab.title = url ? (INTERNAL_TITLES[url] || 'Tora') : 'New Tab';
+  tab.title = url ? (INTERNAL_TITLES[url] || 'Tora') : 'Nouvel onglet';
   tab.isLoading = false;
   tab.favicon = undefined;
   if (win) {

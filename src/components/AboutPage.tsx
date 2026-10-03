@@ -57,13 +57,13 @@ export default function AboutPage() {
     return window.tora?.onUpdateStatus(setUpdate);
   }, []);
 
-  if (error) return <div className="flex-1 overflow-y-auto bg-[#050505]"><InlineError message="Impossible de charger les informations." onRetry={load} /></div>;
+  if (error) return <div className="flex-1 overflow-y-auto bg-surface-0"><InlineError message="Impossible de charger les informations." onRetry={load} /></div>;
 
   const busy = update.state === 'checking' || update.state === 'downloading' || update.state === 'available';
   const canCheck = !!info && update.state !== 'disabled' && !busy && update.state !== 'ready';
 
   return (
-    <motion.div {...popIn} className="flex-1 overflow-y-auto bg-[#050505]">
+    <motion.div {...popIn} className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-2xl mx-auto px-10 py-16">
         <div className="flex items-center gap-5 mb-10">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-indigo-500 to-indigo-900 flex items-center justify-center text-[34px] font-semibold text-white font-display" aria-hidden="true">T</div>
@@ -74,7 +74,7 @@ export default function AboutPage() {
         </div>
 
         <h2 className="text-[13px] font-semibold text-muted uppercase tracking-wider mb-3 px-1">Mises à jour</h2>
-        <div className="p-5 rounded-2xl bg-[#121212] border border-[#222] mb-10">
+        <div className="p-5 rounded-2xl bg-surface-1 border border-line mb-10">
           <div className="flex items-start gap-3">
             {update.state === 'none' || update.state === 'ready' ? <CheckCircle2 size={18} className="text-emerald-400 mt-0.5 shrink-0" aria-hidden="true" />
               : update.state === 'error' ? <AlertCircle size={18} className="text-red-400 mt-0.5 shrink-0" aria-hidden="true" />
@@ -88,7 +88,7 @@ export default function AboutPage() {
                 <Download size={13} aria-hidden="true" /> Redémarrer et installer
               </button>
             ) : (
-              <button type="button" onClick={() => window.tora?.checkForUpdates()} disabled={!canCheck} className="h-9 px-4 flex items-center gap-2 text-[12px] font-medium bg-[#1E1E1E] hover:bg-[#282828] border border-[#5A5A5A] rounded-lg text-muted hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              <button type="button" onClick={() => window.tora?.checkForUpdates()} disabled={!canCheck} className="h-9 px-4 flex items-center gap-2 text-[12px] font-medium bg-surface-2 hover:bg-surface-3 border border-line-strong rounded-lg text-muted hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <RefreshCw size={13} aria-hidden="true" /> Rechercher des mises à jour
               </button>
             )}
@@ -96,7 +96,7 @@ export default function AboutPage() {
         </div>
 
         <h2 className="text-[13px] font-semibold text-muted uppercase tracking-wider mb-3 px-1">Vos données</h2>
-        <div className="p-5 rounded-2xl bg-[#121212] border border-[#222] mb-10 text-[13px]">
+        <div className="p-5 rounded-2xl bg-surface-1 border border-line mb-10 text-[13px]">
           <p className="text-muted leading-relaxed mb-3">
             Tout reste sur votre ordinateur : favoris, historique, mots de passe (chiffrés par votre système) et réglages. Tora ne collecte aucune statistique d'usage et ne possède aucun serveur.
           </p>
@@ -105,22 +105,22 @@ export default function AboutPage() {
             <div><dt className="text-[12px] text-subtle">Journaux d'erreurs</dt><dd className="font-mono text-[12px] text-ink break-all">{info?.logPath ?? '…'}</dd></div>
           </dl>
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => window.tora?.openDataFolder()} className="h-9 px-3 flex items-center gap-2 text-[12px] font-medium bg-[#1E1E1E] hover:bg-[#282828] border border-[#5A5A5A] rounded-lg text-muted hover:text-white transition-colors">
+            <button type="button" onClick={() => window.tora?.openDataFolder()} className="h-9 px-3 flex items-center gap-2 text-[12px] font-medium bg-surface-2 hover:bg-surface-3 border border-line-strong rounded-lg text-muted hover:text-white transition-colors">
               <FolderOpen size={13} aria-hidden="true" /> Ouvrir le dossier des données
             </button>
-            <button type="button" onClick={() => window.tora?.openLogFolder()} className="h-9 px-3 flex items-center gap-2 text-[12px] font-medium bg-[#1E1E1E] hover:bg-[#282828] border border-[#5A5A5A] rounded-lg text-muted hover:text-white transition-colors">
+            <button type="button" onClick={() => window.tora?.openLogFolder()} className="h-9 px-3 flex items-center gap-2 text-[12px] font-medium bg-surface-2 hover:bg-surface-3 border border-line-strong rounded-lg text-muted hover:text-white transition-colors">
               <FileText size={13} aria-hidden="true" /> Ouvrir les journaux
             </button>
           </div>
         </div>
 
         <h2 className="text-[13px] font-semibold text-muted uppercase tracking-wider mb-3 px-1">Connexions réseau de Tora</h2>
-        <ul className="p-5 rounded-2xl bg-[#121212] border border-[#222] mb-10 space-y-2 text-[13px] text-muted leading-relaxed list-disc list-inside">
+        <ul className="p-5 rounded-2xl bg-surface-1 border border-line mb-10 space-y-2 text-[13px] text-muted leading-relaxed list-disc list-inside">
           {NETWORK_USES.map(line => <li key={line}>{line}</li>)}
         </ul>
 
         <h2 className="text-[13px] font-semibold text-muted uppercase tracking-wider mb-3 px-1">Licences et sources</h2>
-        <div className="rounded-2xl bg-[#121212] border border-[#222] mb-10 divide-y divide-[#1E1E1E]">
+        <div className="rounded-2xl bg-surface-1 border border-line mb-10 divide-y divide-[#1E1E1E]">
           {LICENSES.map(item => (
             <div key={item.name} className="p-4">
               <div className="flex items-baseline justify-between gap-3">
@@ -133,7 +133,7 @@ export default function AboutPage() {
         </div>
 
         <h2 className="text-[13px] font-semibold text-muted uppercase tracking-wider mb-3 px-1">Informations techniques</h2>
-        <dl className="p-5 rounded-2xl bg-[#121212] border border-[#222] grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-[12px]">
+        <dl className="p-5 rounded-2xl bg-surface-1 border border-line grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-[12px]">
           <dt className="text-subtle">Tora</dt><dd className="text-ink font-mono">{info?.version ?? '…'}</dd>
           <dt className="text-subtle">Electron</dt><dd className="text-ink font-mono">{info?.electron ?? '…'}</dd>
           <dt className="text-subtle">Chromium</dt><dd className="text-ink font-mono">{info?.chrome ?? '…'}</dd>

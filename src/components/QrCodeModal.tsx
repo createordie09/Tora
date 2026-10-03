@@ -33,7 +33,7 @@ export default function QrCodeModal({ data, onClose }: QrCodeModalProps) {
           aria-modal="true"
           aria-labelledby="qrcode-modal-title"
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-sm bg-[#121216]/95 border border-white/10 rounded-2xl shadow-2xl p-6 text-ink backdrop-blur-2xl flex flex-col items-center text-center relative"
+          className="w-full max-w-sm bg-surface-1/95 border border-white/10 rounded-2xl shadow-2xl p-6 text-ink backdrop-blur-2xl flex flex-col items-center text-center relative"
         >
           <button
             type="button"
