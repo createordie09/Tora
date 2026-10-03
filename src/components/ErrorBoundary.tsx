@@ -1,5 +1,6 @@
 import { Component, ReactNode } from 'react';
 import { AlertOctagon } from 'lucide-react';
+import Button from './Button';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -34,7 +35,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex-1 flex flex-col items-center justify-center bg-[#050505] text-center p-10">
+        <div className="flex-1 flex flex-col items-center justify-center bg-surface-0 text-center p-10">
           <AlertOctagon size={32} className="text-red-400/70 mb-4" strokeWidth={1.5} />
           <p className="text-[14px] font-medium text-ink mb-1">Un problème est survenu dans cette vue</p>
           <p className="text-[12px] text-muted max-w-md mb-3">Cette partie de Tora n'a pas pu s'afficher. Réessayez ; si le problème persiste, redémarrez l'application.</p>
@@ -42,14 +43,9 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
             <summary className="cursor-pointer">Détails techniques</summary>
             <p className="mt-2 font-mono break-words">{this.state.message || 'Erreur inconnue'}</p>
           </details>
-          <button
-            type="button"
-            aria-label="Réessayer d'afficher la vue"
-            onClick={() => this.setState({ hasError: false, message: undefined })}
-            className="text-[12px] font-medium px-4 py-2 bg-[#161616] hover:bg-[#222] rounded-lg border border-[#2A2A2A] transition-colors text-muted hover:text-white"
-          >
+          <Button aria-label="Réessayer d'afficher la vue" onClick={() => this.setState({ hasError: false, message: undefined })}>
             Réessayer
-          </button>
+          </Button>
         </div>
       );
     }

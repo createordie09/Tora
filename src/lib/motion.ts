@@ -43,7 +43,7 @@ export const tabPress = {
 };
 
 export const cardHover = {
-  whileHover: { scale: 1.01, y: -3, boxShadow: '0 10px 30px -10px rgba(99, 102, 241, 0.2)' },
+  whileHover: { scale: 1, y: -1, boxShadow: '0 10px 30px -10px rgba(99, 102, 241, 0.2)' },
   whileTap: { scale: 0.98, y: 0 },
   transition: SPRING.smooth,
 };

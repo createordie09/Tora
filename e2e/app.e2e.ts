@@ -91,7 +91,7 @@ describe('Tora (application complète)', () => {
     await page.getByRole('button', { name: /Nouvel onglet — Travail/ }).click();
     await page.getByRole('tab', { name: /conteneur Travail/ }).waitFor({ state: 'visible' });
     await page.getByTitle(/ses propres cookies/).waitFor({ state: 'visible' });
-    await page.getByRole('button', { name: /Fermer l'onglet/ }).last().click();
+    await page.getByRole('button', { name: /Fermer l'onglet/, includeHidden: true }).last().click();
   });
 
   it('rouvre un onglet fermé depuis le menu', async () => {
@@ -100,7 +100,7 @@ describe('Tora (application complète)', () => {
     await expect.poll(() => page.getByRole('tab').count()).toBe(2);
     await openAddress(`127.0.0.1:${serverPort}/seconde`);
     await page.getByRole('tab', { name: /Seconde page E2E/ }).waitFor({ state: 'visible' });
-    await page.getByRole('button', { name: /Fermer l'onglet Seconde page E2E/ }).click();
+    await page.getByRole('button', { name: /Fermer l'onglet Seconde page E2E/, includeHidden: true }).click();
     await page.getByRole('tab', { name: /Seconde page E2E/ }).waitFor({ state: 'detached' });
 
     await page.getByRole('button', { name: 'Menu principal' }).click();

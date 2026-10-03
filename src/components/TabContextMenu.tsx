@@ -56,7 +56,7 @@ export default function TabContextMenu({ x, y, tab, tabs, onClose }: TabContextM
         role="menu"
         aria-label={`Actions de l'onglet ${tab.title || ''}`.trim()}
         style={{ left, top, originX: 0, originY: 0 }}
-        className="fixed z-[61] w-60 bg-[#1A1A1A] border border-[#5A5A5A] rounded-xl shadow-2xl p-1.5"
+        className="fixed z-[61] w-60 bg-surface-2 border border-line-strong rounded-xl shadow-2xl p-1.5"
       >
         <button type="button" role="menuitem" className={itemClass} disabled={!isRealPage} onClick={run(() => window.tora?.reload(tab.id))}>
           <RotateCw size={14} aria-hidden="true" /> Recharger
@@ -110,7 +110,7 @@ export default function TabContextMenu({ x, y, tab, tabs, onClose }: TabContextM
             title="Aucune couleur"
             aria-label="Supprimer la couleur"
             onClick={run(() => window.tora?.setTabGroupColor(tab.id, null))}
-            className="w-6 h-6 rounded-full border border-[#5A5A5A] flex items-center justify-center hover:bg-[#2A2A2A] transition-colors ml-1"
+            className="w-6 h-6 rounded-full border border-line-strong flex items-center justify-center hover:bg-surface-3 transition-colors ml-1"
           >
             <X size={11} className="text-muted" />
           </button>

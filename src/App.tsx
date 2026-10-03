@@ -28,6 +28,7 @@ import { Search, Github, Youtube, Plus, X, AlertOctagon, ShieldCheck, Settings, 
 import { fadeIn, scaleIn } from './lib/motion';
 import { CONTENT_TOP } from './lib/layout';
 import { useUndoableDelete } from './hooks/useUndoableDelete';
+import Button from './components/Button';
 
 function HomeSearchBar({ activeTabId }: { activeTabId: string | null }) {
   const [inputUrl, setInputUrl] = useState('');
@@ -48,7 +49,7 @@ function HomeSearchBar({ activeTabId }: { activeTabId: string | null }) {
         onChange={(e) => setInputUrl(e.target.value)}
         placeholder="Rechercher sur le web ou saisir une URL"
         aria-label="Rechercher sur le web ou saisir une URL"
-        className="w-full h-14 bg-[#141414] border border-[#5A5A5A] rounded-full pl-14 pr-36 text-[14px] text-white transition-all placeholder-subtle shadow-xl"
+        className="w-full h-14 bg-surface-1 border border-line-strong rounded-full pl-14 pr-36 text-[14px] text-white transition-all placeholder-subtle shadow-xl"
       />
       <div className="absolute left-5 top-0 h-14 flex items-center text-subtle group-focus-within:text-white transition-colors">
         <Search className="w-[18px] h-[18px]" aria-hidden="true" />
@@ -57,7 +58,7 @@ function HomeSearchBar({ activeTabId }: { activeTabId: string | null }) {
         type="button"
         onClick={() => window.tora?.createTab('tora://extensions')}
         aria-label="Ouvrir la page des protections"
-        className="absolute right-2 top-2 h-10 px-4 flex items-center gap-1.5 rounded-full bg-[#1E1E1E] hover:bg-[#252525] border border-[#2A2A2A] text-[12px] font-medium text-muted hover:text-white transition-colors cursor-pointer"
+        className="absolute right-2 top-2 h-10 px-4 flex items-center gap-1.5 rounded-full bg-surface-2 hover:bg-surface-3 border border-line text-[12px] font-medium text-muted hover:text-white transition-colors cursor-pointer"
       >
         <ShieldCheck size={13} className="text-indigo-400" aria-hidden="true" />
         <span>Protections</span>
@@ -214,6 +215,13 @@ function AppShell() {
   const [shortcutBusy, setShortcutBusy] = useState(false);
   const [newShortcutName, setNewShortcutName] = useState('');
   const [newShortcutUrl, setNewShortcutUrl] = useState('');
+  // Built-in shortcuts can be hidden; the choice is kept on this device.
+  const [hiddenDefaults, setHiddenDefaults] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('tora.hiddenDefaultShortcuts') || '[]'); } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('tora.hiddenDefaultShortcuts', JSON.stringify(hiddenDefaults)); } catch { /* storage unavailable */ }
+  }, [hiddenDefaults]);
 
   useEffect(() => {
     if (window.tora) {
@@ -247,7 +255,7 @@ function AppShell() {
         unsubPermission();
       };
     } else {
-      setTabs([{ id: 'mock', title: 'New Tab', url: '', isLoading: false, canGoBack: false, canGoForward: false, blockedCount: 0, popupsBlockedCount: 0, redirectsBlockedCount: 0, scarewareBlockedCount: 0 }]);
+      setTabs([{ id: 'mock', title: 'Nouvel onglet', url: '', isLoading: false, canGoBack: false, canGoForward: false, blockedCount: 0, popupsBlockedCount: 0, redirectsBlockedCount: 0, scarewareBlockedCount: 0 }]);
       setActiveTabId('mock');
     }
   }, []);
@@ -297,7 +305,17 @@ function AppShell() {
     }
   };
 
-  const handleDeleteShortcut = (shortcut: Shortcut) => {
+  const handleDeleteShortcut = (shortcut: Shortcut, isDefault = false) => {
+    if (isDefault) {
+      undoableDelete(
+        `shortcut:${shortcut.id}`,
+        `Raccourci « ${shortcut.title} » masqué`,
+        () => setHiddenDefaults(prev => [...prev, shortcut.id]),
+        () => setHiddenDefaults(prev => prev.filter(id => id !== shortcut.id)),
+        () => {},
+      );
+      return;
+    }
     undoableDelete(
       `shortcut:${shortcut.id}`,
       `Raccourci « ${shortcut.title} » supprimé`,
@@ -329,15 +347,16 @@ function AppShell() {
     { id: 'notion', title: 'Notion', url: 'https://notion.so', isDefault: true, textIcon: 'N', textClass: 'text-indigo-400' },
     { id: 'youtube', title: 'YouTube', url: 'https://youtube.com', isDefault: true, icon: <Youtube className="w-5 h-5 text-red-500 group-hover:text-red-400 transition-colors" /> },
     ...shortcuts.map(s => ({ ...s, isDefault: false, textIcon: s.title.charAt(0).toUpperCase(), textClass: 'text-emerald-400' }))
-  ], [shortcuts]);
+  ].filter(s => !(s.isDefault && hiddenDefaults.includes(s.id))), [shortcuts, hiddenDefaults]);
 
   return (
     <MotionConfig reducedMotion="user">
       <>
-        <div className={`flex h-full w-full bg-[#000000] text-ink overflow-hidden select-none relative font-sans ${settings.isVerticalTabsEnabled ? 'flex-row' : 'flex-col'}`}>
+        <div className={`flex h-full w-full bg-[#000000] text-ink overflow-hidden relative font-sans ${settings.isVerticalTabsEnabled ? 'flex-row' : 'flex-col'}`}>
       <AnimatePresence initial={false}>
         {settings.isVerticalTabsEnabled && !isFullscreen && (
-          <motion.div
+          <motion.aside
+            aria-label="Onglets"
             key="vertical-sidebar"
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 232, opacity: 1 }}
@@ -346,13 +365,13 @@ function AppShell() {
             className="h-full overflow-hidden shrink-0"
           >
             <VerticalTabStrip tabs={tabs} activeTabId={activeTabId} />
-          </motion.div>
+          </motion.aside>
         )}
       </AnimatePresence>
 
       <div className="flex flex-col flex-1 min-w-0 h-full relative overflow-hidden">
         {!isFullscreen && (
-          <div className="flex flex-col shrink-0 relative z-20">
+          <header className="flex flex-col shrink-0 relative z-20">
             {!settings.isVerticalTabsEnabled && <TabStrip tabs={tabs} activeTabId={activeTabId} />}
             <Toolbar 
               activeTab={activeTab} 
@@ -362,7 +381,7 @@ function AppShell() {
               onOpenQrCode={handleOpenQrCode}
               onOpenFakePersona={handleOpenFakePersona}
             />
-          </div>
+          </header>
         )}
 
       {/* Frozen snapshot of the page — shown only while an overlay or banner has
@@ -414,23 +433,22 @@ function AppShell() {
         />
       )}
       
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      {activeTab && activeTab.url !== '' && !activeTab.url.startsWith('tora://') && (
+        <h1 className="sr-only">{activeTab.title || activeTab.url}</h1>
+      )}
       {activeTab && activeTab.isCrashed && (
-        <div className="flex-1 flex flex-col items-center justify-center bg-[#050505] text-center p-10">
+        <div className="flex-1 flex flex-col items-center justify-center bg-surface-0 text-center p-10">
           <AlertOctagon size={32} className="text-red-400/70 mb-4" strokeWidth={1.5} aria-hidden="true" />
           <p className="text-[14px] font-medium text-ink mb-1">Cette page a cessé de fonctionner</p>
           <p className="text-[12px] text-subtle max-w-md mb-5">{activeTab.url}</p>
-          <button
-            type="button"
-            aria-label="Recharger la page"
-            onClick={() => window.tora?.reload(activeTab.id)}
-            className="text-[12px] font-medium px-4 py-2 bg-[#161616] hover:bg-[#222] rounded-lg border border-[#2A2A2A] transition-colors text-muted hover:text-white"
-          >
+          <Button aria-label="Recharger la page" onClick={() => window.tora?.reload(activeTab.id)}>
             Recharger la page
-          </button>
+          </Button>
         </div>
       )}
 
-      <Suspense fallback={<div role="status" aria-label="Chargement…" className="flex-1 bg-[#050505]" />}>
+      <Suspense fallback={<div role="status" aria-label="Chargement…" className="flex-1 bg-surface-0" />}>
       <AnimatePresence mode="wait">
         {activeTab && activeTab.threatWarning && (
           <motion.div key={`${activeTab.id}-threat`} {...fadeIn} className="flex-1 flex flex-col overflow-hidden">
@@ -485,39 +503,33 @@ function AppShell() {
 
         {activeTab && !activeTab.isCrashed && activeTab.url.startsWith('tora://') && 
           !['tora://settings', 'tora://history', 'tora://downloads', 'tora://extensions', 'tora://bookmarks', 'tora://passwords', 'tora://focus', 'tora://about'].includes(activeTab.url) && (
-            <motion.div key={activeTab.id} {...fadeIn} className="flex-1 flex flex-col items-center justify-center bg-[#050505] text-center p-10">
-              <div className="w-14 h-14 rounded-2xl bg-[#161616] border border-[#2A2A2A] flex items-center justify-center text-indigo-400 mb-4 shadow-lg">
+            <motion.div key={activeTab.id} {...fadeIn} className="flex-1 flex flex-col items-center justify-center bg-surface-0 text-center p-10">
+              <div className="w-14 h-14 rounded-2xl bg-surface-1 border border-line flex items-center justify-center text-indigo-400 mb-4 shadow-lg">
                 <AlertOctagon size={28} />
               </div>
               <h1 className="text-[18px] font-semibold text-ink mb-2">Page introuvable</h1>
               <p className="text-[13px] text-subtle max-w-sm mb-6">
                 L'adresse interne <code className="text-indigo-400 px-1.5 py-0.5 bg-white/5 rounded font-mono text-[12px]">{activeTab.url}</code> n'existe pas.
               </p>
-              <button
-                type="button"
-                aria-label="Retour à l'accueil"
-                onClick={() => window.tora?.navigate(activeTab.id, '')}
-                className="text-[12px] font-medium px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors shadow-lg shadow-indigo-600/20"
-              >
+              <Button variant="primary" aria-label="Retour à l'accueil" onClick={() => window.tora?.navigate(activeTab.id, '')}>
                 Retour à l'accueil
-              </button>
+              </Button>
             </motion.div>
         )}
 
         {activeTab && !activeTab.isCrashed && activeTab.url === '' && (
-          <motion.div key={activeTab.id} {...fadeIn} className="flex-1 flex flex-col bg-[#050505] relative overflow-y-auto">
-          {/* Top-right quick links, echoing Chrome's Gmail/Images/apps-grid/avatar row */}
-          <div className="flex items-center justify-end gap-6 px-8 pt-6 text-[13px] text-muted">
+          <motion.div key={activeTab.id} {...fadeIn} className="flex-1 flex flex-col bg-surface-0 relative overflow-y-auto">
+          {/* Top-right quick links: one path per destination */}
+          <div className="flex items-center justify-end gap-4 px-8 pt-6 text-[13px] text-muted">
             <button type="button" className="hover:text-ink transition-colors focus-visible:ring-1 focus-visible:ring-indigo-400 rounded px-1.5 py-0.5" onClick={() => window.tora?.createTab('tora://bookmarks')}>Favoris</button>
-            <button type="button" className="hover:text-ink transition-colors focus-visible:ring-1 focus-visible:ring-indigo-400 rounded px-1.5 py-0.5" onClick={() => window.tora?.createTab('tora://extensions')}>Protections</button>
             <button
               type="button"
               onClick={() => window.tora?.createTab('tora://settings')}
-              className="w-8 h-8 rounded-full bg-[#161616] border border-[#2A2A2A] flex items-center justify-center hover:border-indigo-500/50 transition-colors focus-visible:ring-1 focus-visible:ring-indigo-400"
+              className="w-8 h-8 rounded-full bg-surface-1 border border-line flex items-center justify-center hover:border-indigo-500/50 text-muted hover:text-white transition-colors focus-visible:ring-1 focus-visible:ring-indigo-400"
               title="Paramètres"
               aria-label="Ouvrir les Paramètres"
             >
-              <ShieldCheck size={15} className="text-indigo-400" />
+              <Settings size={15} aria-hidden="true" />
             </button>
           </div>
 
@@ -525,7 +537,7 @@ function AppShell() {
 
             <div className="mb-10 flex flex-col items-center">
               <h1 className="text-[56px] font-semibold tracking-tight text-ink mb-1 leading-none font-display">Tora</h1>
-              <p className="text-muted tracking-[0.15em] text-[12px] font-medium uppercase">Navigate Freely</p>
+              <p className="text-muted tracking-[0.15em] text-[12px] font-medium uppercase">Naviguez librement</p>
             </div>
 
             <HomeSearchBar activeTabId={activeTabId} />
@@ -556,21 +568,19 @@ function AppShell() {
                     aria-label={`Ouvrir le raccourci ${s.title}`}
                     className="flex flex-col items-center space-y-2.5 cursor-pointer w-full rounded-xl"
                   >
-                    <span className="w-14 h-14 bg-[#141414] border border-[#242424] rounded-full flex items-center justify-center group-hover:bg-[#1A1A1A] group-hover:border-[#3A3A3A] group-hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] transition-all duration-200">
+                    <span className="w-14 h-14 bg-surface-1 border border-line rounded-full flex items-center justify-center group-hover:bg-surface-2 group-hover:border-line group-hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.5)] transition-all duration-200">
                       {(s as any).icon ? (s as any).icon : <span className={`text-lg font-bold ${(s as any).textClass}`}>{(s as any).textIcon}</span>}
                     </span>
                     <span className="text-[12px] font-medium text-muted group-hover:text-ink truncate w-full text-center transition-colors">{s.title}</span>
                   </button>
-                  {!s.isDefault && (
-                    <button
-                      type="button"
-                      aria-label={`Supprimer le raccourci ${s.title}`}
-                      onClick={() => handleDeleteShortcut(s as Shortcut)}
-                      className="absolute -top-1 -right-1 bg-[#222] border border-[#5A5A5A] text-muted rounded-full p-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 hover:bg-red-700 hover:text-white hover:border-red-600 transition-all shadow-lg z-10"
-                    >
-                      <X size={10} strokeWidth={3} />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    aria-label={`${s.isDefault ? 'Masquer' : 'Supprimer'} le raccourci ${s.title}`}
+                    onClick={() => handleDeleteShortcut(s as Shortcut, s.isDefault)}
+                    className="absolute -top-1 -right-1 bg-surface-3 border border-line-strong text-muted rounded-full p-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 hover:bg-red-700 hover:text-white hover:border-red-600 transition-all shadow-lg z-10"
+                  >
+                    <X size={10} strokeWidth={3} />
+                  </button>
                 </div>
               ))}
 
@@ -580,12 +590,12 @@ function AppShell() {
                   onSubmit={handleAddShortcut}
                   onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); resetShortcutForm(); } }}
                   aria-label="Ajouter un raccourci"
-                  className="flex flex-col p-3 bg-[#121212] border border-[#5A5A5A] rounded-2xl w-56 shadow-2xl z-10"
+                  className="flex flex-col p-3 bg-surface-1 border border-line-strong rounded-2xl w-56 shadow-2xl z-10"
                 >
                   <label htmlFor="shortcut-name" className="text-[12px] text-muted mb-1">Nom</label>
                   <input
                     id="shortcut-name"
-                    className="w-full bg-[#1A1A1A] text-ink text-[12px] px-3 py-2 mb-2 rounded-lg border border-[#5A5A5A]"
+                    className="w-full bg-surface-2 text-ink text-[12px] px-3 py-2 mb-2 rounded-lg border border-line-strong"
                     placeholder="Mon site"
                     value={newShortcutName}
                     onChange={e => { setNewShortcutName(e.target.value); setShortcutError(null); }}
@@ -596,7 +606,7 @@ function AppShell() {
                   <label htmlFor="shortcut-url" className="text-[12px] text-muted mb-1">Adresse</label>
                   <input
                     id="shortcut-url"
-                    className="w-full bg-[#1A1A1A] text-ink text-[12px] px-3 py-2 mb-2 rounded-lg border border-[#5A5A5A]"
+                    className="w-full bg-surface-2 text-ink text-[12px] px-3 py-2 mb-2 rounded-lg border border-line-strong"
                     placeholder="https://..."
                     value={newShortcutUrl}
                     onChange={e => { setNewShortcutUrl(e.target.value); setShortcutError(null); }}
@@ -606,7 +616,7 @@ function AppShell() {
                   {shortcutError && <p id="shortcut-error" role="alert" className="text-[12px] text-red-400 mb-2">{shortcutError}</p>}
                   <div className="flex space-x-2 w-full">
                     <button type="submit" disabled={shortcutBusy} className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-medium text-[12px] py-2 rounded-lg transition-colors">{shortcutBusy ? 'Ajout…' : 'Ajouter'}</button>
-                    <button type="button" className="flex-1 bg-[#222] hover:bg-[#333] text-muted hover:text-white text-[12px] py-2 rounded-lg transition-colors" onClick={resetShortcutForm}>Annuler</button>
+                    <button type="button" className="flex-1 bg-surface-3 hover:bg-surface-3 text-muted hover:text-white text-[12px] py-2 rounded-lg transition-colors" onClick={resetShortcutForm}>Annuler</button>
                   </div>
                 </motion.form>
               ) : (
@@ -616,7 +626,7 @@ function AppShell() {
                   className="flex flex-col items-center space-y-2.5 cursor-pointer group w-[68px] rounded-xl"
                   onClick={() => setIsAddingShortcut(true)}
                 >
-                  <span className="w-14 h-14 bg-[#0E0E0E] border border-dashed border-[#5A5A5A] rounded-full flex items-center justify-center group-hover:bg-[#141414] group-hover:border-indigo-500/50 transition-all duration-200">
+                  <span className="w-14 h-14 bg-surface-0 border border-dashed border-line-strong rounded-full flex items-center justify-center group-hover:bg-surface-1 group-hover:border-indigo-500/50 transition-all duration-200">
                     <Plus className="w-5 h-5 text-muted group-hover:text-indigo-400 transition-colors" aria-hidden="true" />
                   </span>
                   <span className="text-[12px] font-medium text-muted group-hover:text-ink transition-colors">Ajouter</span>
@@ -624,20 +634,12 @@ function AppShell() {
               )}
             </div>
 
-            <button
-              type="button"
-              aria-label="Personnaliser Tora"
-              onClick={() => window.tora?.createTab('tora://settings')}
-              className="fixed bottom-6 right-6 flex items-center gap-2 h-9 px-4 rounded-full bg-[#161616] hover:bg-[#1E1E1E] border border-[#2A2A2A] text-[12px] font-medium text-muted hover:text-white transition-colors shadow-lg"
-            >
-              <Settings size={13} />
-              <span>Personnaliser Tora</span>
-            </button>
           </div>
           </motion.div>
         )}
       </AnimatePresence>
       </Suspense>
+      </main>
       </div>
 
       <CommandPaletteModal
@@ -645,6 +647,7 @@ function AppShell() {
         onClose={() => setIsCommandPaletteOpen(false)}
         onOpenQrCode={handleOpenQrCode}
         onOpenFakePersona={handleOpenFakePersona}
+        activeTabUrl={activeTab?.url}
       />
 
       <MainMenuModal

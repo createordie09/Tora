@@ -4,10 +4,11 @@ import { ToraSettings, ClearDataOptions, Container } from '../types';
 import { SEARCH_ENGINE_OPTIONS } from '../lib/searchEngines';
 import Switch from './Switch';
 import { useToast } from './Toast';
+import { useAutoReset } from '../hooks/useAutoReset';
 
-const rowClass = 'flex items-center justify-between gap-4 group p-4 rounded-xl hover:bg-[#121212] transition-colors border border-transparent hover:border-[#222]';
-const iconBox = 'w-10 h-10 rounded-xl bg-[#161616] border border-[#222] flex items-center justify-center shrink-0';
-const fieldClass = 'h-9 px-3 bg-[#121212] border border-[#5A5A5A] rounded-lg text-[13px] text-ink';
+const rowClass = 'flex items-center justify-between gap-4 group p-4 rounded-xl hover:bg-surface-1 transition-colors border border-transparent hover:border-line';
+const iconBox = 'w-10 h-10 rounded-xl bg-surface-1 border border-line flex items-center justify-center shrink-0';
+const fieldClass = 'h-9 px-3 bg-surface-1 border border-line-strong rounded-lg text-[13px] text-ink';
 const sectionTitle = 'text-[13px] font-semibold text-muted uppercase tracking-wider mt-10 mb-3 px-1';
 
 export function SearchAndStartupSection({ settings }: { settings: ToraSettings }) {
@@ -127,7 +128,7 @@ export function DownloadsSection({ settings }: { settings: ToraSettings }) {
             <button
               type="button"
               onClick={chooseFolder}
-              className="h-9 px-3 text-[12px] font-medium bg-[#1E1E1E] hover:bg-[#282828] border border-[#5A5A5A] rounded-lg text-muted hover:text-white transition-colors"
+              className="h-9 px-3 text-[12px] font-medium bg-surface-2 hover:bg-surface-3 border border-line-strong rounded-lg text-muted hover:text-white transition-colors"
             >
               Modifier…
             </button>
@@ -162,6 +163,7 @@ export function ClearDataSection() {
   const [range, setRange] = useState<ClearDataOptions['range']>('day');
   const [selected, setSelected] = useState<Record<string, boolean>>({ history: true, downloads: false, cookies: false, cache: true, permissions: false });
   const [confirming, setConfirming] = useState(false);
+  useAutoReset(confirming, false, () => setConfirming(false), 5000);
   const [busy, setBusy] = useState(false);
 
   const anySelected = Object.values(selected).some(Boolean);
@@ -169,7 +171,6 @@ export function ClearDataSection() {
   const run = async () => {
     if (!confirming) {
       setConfirming(true);
-      setTimeout(() => setConfirming(false), 5000);
       return;
     }
     setConfirming(false);
@@ -195,7 +196,7 @@ export function ClearDataSection() {
   return (
     <>
       <h2 className={sectionTitle}>Effacer les données de navigation</h2>
-      <fieldset className="p-5 rounded-2xl bg-[#121212] border border-[#222]">
+      <fieldset className="p-5 rounded-2xl bg-surface-1 border border-line">
         <legend className="sr-only">Données à effacer</legend>
         <div className="flex items-center gap-3 mb-4">
           <label htmlFor="clear-range" className="text-[13px] text-ink">Période</label>
@@ -226,7 +227,7 @@ export function ClearDataSection() {
           type="button"
           onClick={run}
           disabled={!anySelected || busy}
-          className={`h-9 px-4 flex items-center gap-2 text-[12px] font-medium rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirming ? 'bg-red-700 hover:bg-red-600 border-red-600 text-white' : 'bg-[#1E1E1E] hover:bg-[#282828] border-[#5A5A5A] text-muted hover:text-white'}`}
+          className={`h-9 px-4 flex items-center gap-2 text-[12px] font-medium rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirming ? 'bg-red-700 hover:bg-red-600 border-red-600 text-white' : 'bg-surface-2 hover:bg-surface-3 border-line-strong text-muted hover:text-white'}`}
         >
           {busy ? <Loader2 size={13} className="animate-spin" aria-hidden="true" /> : <Trash2 size={13} aria-hidden="true" />}
           {confirming ? 'Cliquez à nouveau pour confirmer' : 'Effacer les données'}
@@ -281,6 +282,7 @@ export function ContainersSection() {
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState(CONTAINER_COLORS[0].value);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  useAutoReset(confirmDeleteId, null, () => setConfirmDeleteId(null), 4000);
 
   const load = () => Promise.resolve(window.tora?.getContainers()).then(c => setContainers(c || [])).catch(() => {});
   useEffect(() => { load(); }, []);
@@ -304,7 +306,6 @@ export function ContainersSection() {
   const remove = async (id: string) => {
     if (confirmDeleteId !== id) {
       setConfirmDeleteId(id);
-      setTimeout(() => setConfirmDeleteId(prev => (prev === id ? null : prev)), 4000);
       return;
     }
     setConfirmDeleteId(null);
@@ -363,7 +364,7 @@ export function ContainersSection() {
         ))}
         <form
           onSubmit={(e) => { e.preventDefault(); add(); }}
-          className="flex items-center gap-2 p-4"
+          className="flex flex-wrap items-center gap-2 p-4"
         >
           <label htmlFor="new-container" className="sr-only">Nom du nouveau conteneur</label>
           <input
@@ -385,7 +386,7 @@ export function ContainersSection() {
           <button
             type="submit"
             disabled={!newName.trim() || containers.length >= 8}
-            className="h-9 px-3 flex items-center gap-1.5 text-[12px] font-medium bg-[#1E1E1E] hover:bg-[#282828] border border-[#5A5A5A] rounded-lg text-muted hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="h-9 px-3 flex items-center gap-1.5 text-[12px] font-medium bg-surface-2 hover:bg-surface-3 border border-line-strong rounded-lg text-muted hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Plus size={14} aria-hidden="true" /> Ajouter
           </button>

@@ -96,3 +96,13 @@ select:focus-visible {
   outline: none;
   border-color: transparent;
 }
+
+/* Windows "high contrast" mode: the dark palette is replaced by system colours, so make sure
+   boundaries and focus stay visible once background colours are overridden. */
+@media (forced-colors: active) {
+  :focus-visible { outline: 2px solid Highlight; }
+  button, input, select, textarea, [role="tab"], [role="dialog"], [role="menu"], [role="listbox"] {
+    border: 1px solid ButtonText;
+  }
+  [role="tab"][aria-selected="true"] { outline: 2px solid Highlight; }
+}

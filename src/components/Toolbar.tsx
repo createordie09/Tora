@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, RotateCw, X, Shield, Menu, Star, BookOpen, Download, Loader2, Lock, LockOpen, ShieldAlert, Search, Globe, Clock, EyeOff, Boxes } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, X, Shield, Menu, Star, BookOpen, Lock, LockOpen, ShieldAlert, Search, Globe, Clock, EyeOff, Boxes } from 'lucide-react';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { TabData, ToraSettings, Suggestion } from '../types';
@@ -19,7 +19,6 @@ interface ToolbarProps {
 
 export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, onOpenQrCode, onOpenFakePersona }: ToolbarProps) {
   const [inputUrl, setInputUrl] = useState('');
-  const [isExtracting, setIsExtracting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { showToast } = useToast();
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -123,26 +122,6 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
     }
   };
 
-  const handleDownloadVideo = async () => {
-    if (!activeTab || isExtracting) return;
-    setIsExtracting(true);
-    showToast("Recherche du flux vidéo en cours...", "info");
-    try {
-      const res = await window.tora?.downloadVideo(activeTab.url);
-      if (res?.ok) {
-        showToast("Téléchargement de la vidéo démarré !", "success");
-      } else if (res?.message) {
-        showToast(res.message, "error");
-      } else {
-        showToast("Téléchargement initié.", "success");
-      }
-    } catch {
-      showToast("Échec de l'extraction de la vidéo", "error");
-    } finally {
-      setIsExtracting(false);
-    }
-  };
-
   const handleToggleBookmark = () => {
     if (!activeTab) return;
     const willBeBookmarked = !activeTab.isBookmarked;
@@ -186,8 +165,8 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
     : "Bloqueur désactivé (cliquez pour activer)";
 
   return (
-    <div className="flex items-center h-14 px-5 bg-[#0A0A0A]/85 backdrop-blur-xl border-b border-white/10 app-region-no-drag shadow-lg">
-      <div className="flex items-center space-x-2 mr-4 text-muted">
+    <div className="flex items-center h-14 px-5 bg-surface-0/85 backdrop-blur-xl border-b border-white/10 app-region-no-drag shadow-lg select-none">
+      <div className="flex items-center space-x-1 mr-2 text-muted shrink-0">
         <motion.button
           {...iconButtonPress}
           onClick={() => activeTab && window.tora?.goBack(activeTab.id)}
@@ -218,8 +197,8 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
         </motion.button>
       </div>
 
-      <div className="relative flex-1 min-w-[140px]">
-      <form onSubmit={handleSubmit} className="w-full flex items-center h-10 px-4 bg-[#121212]/90 border border-[#5A5A5A] rounded-full text-[13px] text-ink focus-ring-within transition-all duration-200">
+      <div className="@container relative flex-1 min-w-[72px]">
+      <form onSubmit={handleSubmit} className="w-full min-w-0 overflow-hidden flex items-center h-10 px-4 bg-surface-1/90 border border-line-strong rounded-full text-[13px] text-ink focus-ring-within transition-all duration-200">
         <button
           type="button"
           aria-label={`Protections de Tora${hasBlocks ? ` : ${totalBlocks} élément${totalBlocks > 1 ? 's' : ''} bloqué${totalBlocks > 1 ? 's' : ''}` : ''}`}
@@ -230,14 +209,14 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
           onClick={() => setPrivacyOpen(open => !open)}
         >
           {settings?.isAdBlockEnabled ? (
-            <div className={`flex items-center space-x-1.5 px-2.5 h-6 rounded-lg transition-colors ${hasBlocks ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : 'bg-[#1A1A1A] hover:bg-[#2A2A2A]'}`}>
+            <div className={`flex items-center space-x-1.5 px-2.5 h-6 rounded-lg transition-colors ${hasBlocks ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : 'bg-surface-2 hover:bg-surface-3'}`}>
               <Shield size={13} className={hasBlocks ? 'text-indigo-400' : 'text-muted'} fill={hasBlocks ? 'currentColor' : 'none'} />
               {hasBlocks && (
                  <span className="text-[12px] font-semibold text-indigo-300">{totalBlocks}</span>
               )}
             </div>
           ) : (
-            <div className="flex items-center space-x-1.5 px-2.5 h-6 rounded-lg hover:bg-[#1A1A1A] transition-colors">
+            <div className="flex items-center space-x-1.5 px-2.5 h-6 rounded-lg hover:bg-surface-2 transition-colors">
               <Shield size={13} className="text-subtle" />
             </div>
           )}
@@ -248,7 +227,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
             role="img"
             aria-label={securityLabel}
             title={securityLabel}
-            className={`flex items-center gap-1 mr-2 shrink-0 text-[12px] font-medium ${security === 'secure' ? 'text-muted' : security === 'insecure' ? 'text-amber-300' : 'text-red-400'}`}
+            className={`flex items-center gap-1 mr-2 shrink-0 @max-[260px]:hidden text-[12px] font-medium ${security === 'secure' ? 'text-muted' : security === 'insecure' ? 'text-amber-300' : 'text-red-400'}`}
           >
             {security === 'secure' ? <Lock size={13} aria-hidden="true" /> : security === 'insecure' ? <LockOpen size={13} aria-hidden="true" /> : <ShieldAlert size={13} aria-hidden="true" />}
             {security === 'insecure' && <span>Non sécurisé</span>}
@@ -276,7 +255,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
           spellCheck={false}
           aria-label="Adresse web ou recherche"
           placeholder="Rechercher ou entrer une adresse"
-          className="w-full bg-transparent text-ink placeholder-muted focus:outline-none outline-none border-none ring-0 focus:ring-0 shadow-none px-1"
+          className="w-full min-w-0 bg-transparent text-ink placeholder-muted focus:outline-none outline-none border-none ring-0 focus:ring-0 shadow-none px-1"
         />
 
         {inputUrl && (
@@ -285,7 +264,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
             aria-label="Effacer la saisie"
             title="Effacer"
             onClick={() => { setInputUrl(''); inputRef.current?.focus(); }}
-            className="p-1.5 mr-1 text-muted hover:text-ink hover:bg-white/10 rounded-md transition-colors shrink-0"
+            className="p-1.5 mr-1 text-muted hover:text-ink hover:bg-white/10 rounded-md transition-colors shrink-0 @max-[260px]:hidden"
           >
             <X size={12} />
           </button>
@@ -297,26 +276,9 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
             aria-label={activeTab?.isBookmarked ? 'Retirer des favoris' : 'Ajouter aux favoris'}
             title={activeTab?.isBookmarked ? 'Retirer des favoris' : 'Ajouter aux favoris'}
             onClick={handleToggleBookmark}
-            className="p-2 mr-1 hover:bg-white/10 rounded-lg transition-colors shrink-0"
+            className="p-2 mr-1 hover:bg-white/10 rounded-lg transition-colors shrink-0 @max-[260px]:hidden"
           >
             <Star size={14} className={activeTab?.isBookmarked ? 'text-amber-400' : 'text-muted hover:text-ink'} fill={activeTab?.isBookmarked ? 'currentColor' : 'none'} />
-          </button>
-        )}
-
-        {isRealPage && settings?.isMediaDownloadEnabled !== false && (
-          <button
-            type="button"
-            aria-label="Extraire et télécharger la vidéo"
-            title={isExtracting ? "Extraction en cours..." : "Extraire & Télécharger la vidéo"}
-            disabled={isExtracting}
-            onClick={handleDownloadVideo}
-            className={`p-1.5 mr-1 rounded-lg transition-colors shrink-0 group ${isExtracting ? 'bg-emerald-500/30' : 'hover:bg-emerald-500/20'}`}
-          >
-            {isExtracting ? (
-              <Loader2 size={14} className="text-emerald-400 animate-spin" />
-            ) : (
-              <Download size={14} className="text-emerald-400 group-hover:scale-110 transition-transform" />
-            )}
           </button>
         )}
 
@@ -326,7 +288,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
             aria-label={activeTab?.isReaderMode ? 'Quitter le mode lecture' : 'Activer le mode lecture'}
             title="Mode lecture"
             onClick={() => window.tora?.toggleReaderMode()}
-            className="p-1.5 mr-1 hover:bg-white/10 rounded-lg transition-colors shrink-0"
+            className="p-1.5 mr-1 hover:bg-white/10 rounded-lg transition-colors shrink-0 @max-[260px]:hidden"
           >
             <BookOpen size={14} className={activeTab?.isReaderMode ? 'text-indigo-400' : 'text-muted hover:text-ink'} />
           </button>
@@ -342,7 +304,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
           id={listboxId}
           role="listbox"
           aria-label="Suggestions"
-          className="absolute left-0 right-0 top-full mt-2 z-40 bg-[#121216] border border-[#5A5A5A] rounded-2xl shadow-2xl p-1.5 overflow-hidden"
+          className="absolute left-0 right-0 top-full mt-2 z-40 bg-surface-1 border border-line-strong rounded-2xl shadow-2xl p-1.5 overflow-hidden"
         >
           {suggestions.map((sugg, i) => {
             const Icon = sugg.kind === 'search' ? Search : sugg.kind === 'bookmark' ? Star : sugg.kind === 'history' ? Clock : Globe;
@@ -369,7 +331,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
       )}
       </div>
 
-      <div className="flex items-center space-x-4 ml-6">
+      <div className="flex items-center space-x-2 ml-3 shrink-0">
         {activeTab?.container && (
           <span
             className="flex items-center gap-1.5 h-7 px-2.5 rounded-full border text-[12px] font-medium text-ink"

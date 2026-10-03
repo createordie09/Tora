@@ -13,15 +13,24 @@ export default function FindBar({ isVerticalTabsEnabled }: FindBarProps) {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<{ matches: number; activeMatchOrdinal: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const queryRef = useRef('');
+  queryRef.current = query;
 
   useEffect(() => {
     const unsub = window.tora?.onShowFindBar(() => {
       setVisible(true);
       window.tora?.setOverlayActive('find', true);
+      // Reopening restores the previous search.
+      if (queryRef.current) window.tora?.findInPage(queryRef.current);
       setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select(); }, 0);
     });
     return unsub;
   }, []);
+
+  // Focus once the bar is actually mounted (a timeout can fire before it renders).
+  useEffect(() => {
+    if (visible) { inputRef.current?.focus(); inputRef.current?.select(); }
+  }, [visible]);
 
   useEffect(() => {
     const unsub = window.tora?.onFindInPageResult((r) => setResult(r));
@@ -39,15 +48,18 @@ export default function FindBar({ isVerticalTabsEnabled }: FindBarProps) {
 
   const close = () => {
     setVisible(false);
-    setQuery('');
     setResult(null);
     window.tora?.setOverlayActive('find', false);
     window.tora?.stopFindInPage();
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (query) window.tora?.findInPage(query);
+  // Enter = next match, Maj+Entrée = previous (the first search runs as you type).
+  const handleSubmit = (e: FormEvent) => { e.preventDefault(); };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (query) window.tora?.findInPageNext(query, !e.shiftKey);
+    }
   };
 
   useEffect(() => {
@@ -61,13 +73,14 @@ export default function FindBar({ isVerticalTabsEnabled }: FindBarProps) {
       {visible && (
         <motion.div
           {...slideDown}
-          className={`absolute right-4 z-50 flex items-center bg-[#1A1A1A] border border-[#5A5A5A] rounded-lg shadow-2xl px-2 py-1.5 app-region-no-drag transition-all duration-200`} style={{ top: isVerticalTabsEnabled ? OVERLAY_TOP.vertical : OVERLAY_TOP.horizontal }}
+          className={`absolute right-4 z-50 flex items-center bg-surface-2 border border-line-strong rounded-lg shadow-2xl px-2 py-1.5 app-region-no-drag`} style={{ top: isVerticalTabsEnabled ? OVERLAY_TOP.vertical : OVERLAY_TOP.horizontal }}
         >
           <form onSubmit={handleSubmit} className="flex items-center">
             <input
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
               aria-label="Rechercher dans la page"
               placeholder="Rechercher dans la page"
               className="w-56 bg-transparent text-[13px] text-ink placeholder-subtle px-2"
@@ -83,7 +96,7 @@ export default function FindBar({ isVerticalTabsEnabled }: FindBarProps) {
             aria-label="Résultat précédent"
             title="Résultat précédent (Maj+Entrée)"
             onClick={() => query && window.tora?.findInPageNext(query, false)}
-            className="p-1.5 text-muted hover:text-ink hover:bg-[#2A2A2A] rounded transition-colors"
+            className="p-1.5 text-muted hover:text-ink hover:bg-surface-3 rounded transition-colors"
           >
             <ChevronUp size={14} />
           </button>
@@ -92,7 +105,7 @@ export default function FindBar({ isVerticalTabsEnabled }: FindBarProps) {
             aria-label="Résultat suivant"
             title="Résultat suivant (Entrée)"
             onClick={() => query && window.tora?.findInPageNext(query, true)}
-            className="p-1.5 text-muted hover:text-ink hover:bg-[#2A2A2A] rounded transition-colors"
+            className="p-1.5 text-muted hover:text-ink hover:bg-surface-3 rounded transition-colors"
           >
             <ChevronDown size={14} />
           </button>
@@ -101,7 +114,7 @@ export default function FindBar({ isVerticalTabsEnabled }: FindBarProps) {
             aria-label="Fermer la recherche"
             title="Fermer la recherche (Échap)"
             onClick={close} 
-            className="p-1.5 ml-1 text-muted hover:text-ink hover:bg-[#2A2A2A] rounded transition-colors"
+            className="p-1.5 ml-1 text-muted hover:text-ink hover:bg-surface-3 rounded transition-colors"
           >
             <X size={14} />
           </button>

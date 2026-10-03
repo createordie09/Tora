@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { useVideoDownload } from '../hooks/useVideoDownload';
 import { Container } from '../types';
 import { 
   Plus, EyeOff, Printer, FileDown, Code, Undo2, Boxes, Info, 
@@ -15,6 +16,7 @@ import {
   Copy, 
   QrCode, 
   Tv, 
+  Film,
   UserCheck, 
   ZoomIn, 
   Settings, 
@@ -47,7 +49,7 @@ function MenuRow({ icon: Icon, label, shortcut, onClick }: { icon: React.Compone
         </div>
         <span className="text-[13px] font-medium text-ink group-hover:text-white">{label}</span>
       </div>
-      {shortcut && <span className="text-[11px] text-subtle font-mono group-hover:text-muted">{shortcut}</span>}
+      {shortcut && <span className="text-[12px] text-subtle font-mono group-hover:text-muted">{shortcut}</span>}
     </button>
   );
 }
@@ -61,6 +63,8 @@ export default function MainMenuModal({
 }: MainMenuModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   useModalA11y(dialogRef, isOpen, onClose);
+  const { extract, isExtracting } = useVideoDownload();
+  const isRealPage = !!activeTab?.url && !activeTab.url.startsWith('tora://');
   const [containers, setContainers] = useState<Container[]>([]);
   useEffect(() => {
     if (isOpen) Promise.resolve(window.tora?.getContainers()).then(c => setContainers(c || [])).catch(() => setContainers([]));
@@ -83,7 +87,7 @@ export default function MainMenuModal({
             exit={{ opacity: 0, scale: 0.94, y: 12 }}
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[620px] bg-[#121216]/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl flex flex-col"
+            className="w-full max-w-[620px] bg-surface-1/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
@@ -99,7 +103,7 @@ export default function MainMenuModal({
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-[11px] font-medium text-muted bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                <span className="text-[12px] font-medium text-muted bg-white/5 px-2 py-0.5 rounded border border-white/10">
                   ESC
                 </span>
                 <button
@@ -117,7 +121,7 @@ export default function MainMenuModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 max-h-[75vh] overflow-y-auto">
               {/* Left Column: Navigation & Pages */}
               <div className="flex flex-col space-y-1">
-                <span className="text-[11px] font-semibold text-muted uppercase tracking-wider px-2 py-1 mb-1">
+                <span className="text-[12px] font-semibold text-muted uppercase tracking-wider px-2 py-1 mb-1">
                   Navigation & Pages
                 </span>
 
@@ -132,7 +136,7 @@ export default function MainMenuModal({
                     </div>
                     <span className="text-[13px] font-medium text-ink group-hover:text-white">Nouvel onglet</span>
                   </div>
-                  <span className="text-[11px] text-subtle font-mono group-hover:text-muted">Ctrl+T</span>
+                  <span className="text-[12px] text-subtle font-mono group-hover:text-muted">Ctrl+T</span>
                 </button>
 
                 <button
@@ -244,7 +248,7 @@ export default function MainMenuModal({
 
               {/* Right Column: Tools & System */}
               <div className="flex flex-col space-y-1">
-                <span className="text-[11px] font-semibold text-muted uppercase tracking-wider px-2 py-1 mb-1">
+                <span className="text-[12px] font-semibold text-muted uppercase tracking-wider px-2 py-1 mb-1">
                   Outils & Système
                 </span>
 
@@ -292,6 +296,14 @@ export default function MainMenuModal({
                   <span className="text-[13px] font-medium text-ink group-hover:text-white">Image dans l'image (PiP)</span>
                 </button>
 
+                {isRealPage && (
+                  <MenuRow
+                    icon={Film}
+                    label={isExtracting ? 'Extraction de la vidéo…' : 'Télécharger la vidéo de la page'}
+                    onClick={() => { extract(activeTab?.url); onClose(); }}
+                  />
+                )}
+
                 <button
                   type="button"
                   onClick={() => { onOpenFakePersona?.(); onClose(); }}
@@ -324,7 +336,7 @@ export default function MainMenuModal({
                       type="button"
                       aria-label="Réinitialiser le zoom"
                       onClick={() => window.tora?.zoomReset()}
-                      className="text-[11px] font-mono px-1.5 py-0.5 rounded hover:bg-white/10 text-white"
+                      className="text-[12px] font-mono px-1.5 py-0.5 rounded hover:bg-white/10 text-white"
                     >
                       {Math.round(100 + (activeTab?.zoomLevel || 0) * 20)}%
                     </button>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ShieldAlert, ChevronDown } from 'lucide-react';
 import { TabData } from '../types';
+import Button from './Button';
 
 interface CertWarningPageProps {
   tab: TabData & { certError: NonNullable<TabData['certError']> };
@@ -11,7 +12,7 @@ export default function CertWarningPage({ tab }: CertWarningPageProps) {
   const { host, message, url } = tab.certError;
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#050505]">
+    <div className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-xl mx-auto px-8 py-20 flex flex-col">
         <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 mb-6">
           <ShieldAlert size={28} aria-hidden="true" />
@@ -32,25 +33,20 @@ export default function CertWarningPage({ tab }: CertWarningPageProps) {
           Détails
         </button>
         {showDetails && (
-          <div className="p-4 rounded-xl bg-[#101014] border border-white/10 text-[13px] text-muted leading-relaxed mb-2">
+          <div className="p-4 rounded-xl bg-surface-1 border border-white/10 text-[13px] text-muted leading-relaxed mb-2">
             <p>{message}</p>
             <p className="mt-2 text-subtle break-all font-mono text-[12px]">{url}</p>
           </div>
         )}
 
         <div className="flex flex-wrap items-center gap-3 mt-6">
-          <button
-            type="button"
-            autoFocus
-            onClick={() => window.tora?.certGoBack(tab.id)}
-            className="h-10 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[13px] font-medium text-white transition-colors"
-          >
+          <Button variant="primary" size="md" autoFocus onClick={() => window.tora?.certGoBack(tab.id)}>
             Retour en lieu sûr
-          </button>
+          </Button>
           <button
             type="button"
             onClick={() => window.tora?.certProceed(tab.id)}
-            className="h-10 px-4 rounded-lg border border-[#5A5A5A] bg-transparent hover:bg-red-500/10 hover:border-red-500/50 text-[13px] text-muted hover:text-red-300 transition-colors"
+            className="h-10 px-4 rounded-lg border border-line-strong bg-transparent hover:bg-red-500/10 hover:border-red-500/50 text-[13px] text-muted hover:text-red-300 transition-colors"
           >
             Continuer vers {host || 'ce site'} (dangereux)
           </button>

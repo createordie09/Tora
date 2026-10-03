@@ -8,13 +8,13 @@ import PasswordGenerator from './PasswordGenerator';
 import PasswordEditModal from './PasswordEditModal';
 import { useToast } from './Toast';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { useUndoableDelete } from '../hooks/useUndoableDelete';
 import { fadeIn, scaleIn } from '../lib/motion';
 
 export default function PasswordsPage() {
   const [credentials, setCredentials] = useState<CredentialEntry[]>([]);
   const [query, setQuery] = useState('');
   const [revealed, setRevealed] = useState<Record<string, string>>({});
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [vaultMode, setVaultMode] = useState<'export' | 'import' | null>(null);
   const [masterPassword, setMasterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,6 +24,8 @@ export default function PasswordsPage() {
   const [error, setError] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
+  const undoableDelete = useUndoableDelete();
+  const revealTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const [editing, setEditing] = useState<CredentialEntry | null>(null);
   const [generatorOpen, setGeneratorOpen] = useState(false);
   const generatorRef = useRef<HTMLDivElement>(null);
@@ -77,7 +79,11 @@ export default function PasswordsPage() {
 
   useEffect(() => {
     load();
-    return () => setRevealed({});
+    const timers = revealTimers.current;
+    return () => {
+      setRevealed({});
+      Object.values(timers).forEach(clearTimeout);
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -94,15 +100,9 @@ export default function PasswordsPage() {
     }, {} as Record<string, CredentialEntry[]>);
   }, [filtered]);
 
-  const handleDelete = async (id: string) => {
-    if (confirmDeleteId !== id) {
-      setConfirmDeleteId(id);
-      setTimeout(() => setConfirmDeleteId(null), 3500);
-      return;
-    }
-    const updated = await window.tora?.deleteCredential(id);
-    if (updated) setCredentials(updated);
-    setConfirmDeleteId(null);
+  const hide = (id: string) => {
+    clearTimeout(revealTimers.current[id]);
+    delete revealTimers.current[id];
     setRevealed(prev => {
       const next = { ...prev };
       delete next[id];
@@ -110,17 +110,26 @@ export default function PasswordsPage() {
     });
   };
 
+  // Like the other lists: removed at once, with an "Annuler" window before it is really deleted.
+  const handleDelete = (c: CredentialEntry) => {
+    hide(c.id);
+    undoableDelete(
+      `credential:${c.id}`,
+      `Identifiant « ${c.username} » supprimé`,
+      () => setCredentials(prev => prev.filter(x => x.id !== c.id)),
+      () => setCredentials(prev => [...prev, c]),
+      () => { window.tora?.deleteCredential(c.id).then(refreshHealth).catch(() => {}); },
+    );
+  };
+
   const toggleReveal = async (id: string) => {
-    if (revealed[id]) {
-      setRevealed(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      return;
-    }
+    if (revealed[id]) { hide(id); return; }
     const password = await window.tora?.revealCredentialPassword(id);
-    if (password) setRevealed(prev => ({ ...prev, [id]: password }));
+    if (password) {
+      setRevealed(prev => ({ ...prev, [id]: password }));
+      // A visible password hides itself again after 15 s.
+      revealTimers.current[id] = setTimeout(() => hide(id), 15000);
+    }
   };
 
   const closeVaultModal = () => {
@@ -167,18 +176,18 @@ export default function PasswordsPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#050505]">
+    <div className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-5xl mx-auto px-10 py-16">
-        <div className="flex items-start justify-between mb-1">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
           <h1 className="text-[28px] font-semibold text-white font-display">Mots de passe</h1>
-          <div className="flex items-center space-x-2 mt-1.5">
-            <button type="button" onClick={() => setGeneratorOpen(true)} title="Générer un mot de passe fort" className="flex items-center space-x-1.5 text-[12px] font-medium px-3 py-2 bg-[#161616] hover:bg-[#1E1E1E] rounded-lg border border-[#5A5A5A] transition-colors text-muted hover:text-white">
+          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+            <button type="button" onClick={() => setGeneratorOpen(true)} title="Générer un mot de passe fort" className="flex items-center space-x-1.5 text-[12px] font-medium px-3 py-2 bg-surface-1 hover:bg-surface-2 rounded-lg border border-line-strong transition-colors text-muted hover:text-white">
               <Wand2 size={12} aria-hidden="true" /><span>Générateur</span>
             </button>
-            <button type="button" onClick={() => setVaultMode('export')} title="Exporter le coffre (fichier chiffré)" className="flex items-center space-x-1.5 text-[12px] font-medium px-3 py-2 bg-[#161616] hover:bg-[#1E1E1E] rounded-lg border border-[#5A5A5A] transition-colors text-muted hover:text-white">
+            <button type="button" onClick={() => setVaultMode('export')} title="Exporter le coffre (fichier chiffré)" className="flex items-center space-x-1.5 text-[12px] font-medium px-3 py-2 bg-surface-1 hover:bg-surface-2 rounded-lg border border-line-strong transition-colors text-muted hover:text-white">
               <Download size={12} aria-hidden="true" /><span>Exporter</span>
             </button>
-            <button type="button" onClick={() => setVaultMode('import')} title="Importer un coffre" className="flex items-center space-x-1.5 text-[12px] font-medium px-3 py-2 bg-[#161616] hover:bg-[#1E1E1E] rounded-lg border border-[#5A5A5A] transition-colors text-muted hover:text-white">
+            <button type="button" onClick={() => setVaultMode('import')} title="Importer un coffre" className="flex items-center space-x-1.5 text-[12px] font-medium px-3 py-2 bg-surface-1 hover:bg-surface-2 rounded-lg border border-line-strong transition-colors text-muted hover:text-white">
               <Upload size={12} aria-hidden="true" /><span>Importer</span>
             </button>
           </div>
@@ -186,7 +195,7 @@ export default function PasswordsPage() {
         <p className="text-[13px] text-muted mb-6">Identifiants enregistrés, chiffrés localement</p>
 
         {credentials.length > 0 && (
-          <div className="mb-6 p-4 rounded-2xl bg-[#101014] border border-white/10">
+          <div className="mb-6 p-4 rounded-2xl bg-surface-1 border border-white/10">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-start gap-3 min-w-0">
                 <ShieldCheck size={18} className="text-indigo-400 mt-0.5 shrink-0" aria-hidden="true" />
@@ -204,7 +213,7 @@ export default function PasswordsPage() {
                 type="button"
                 onClick={() => setBreachPanelOpen(v => !v)}
                 aria-expanded={breachPanelOpen}
-                className="h-9 px-3 text-[12px] font-medium bg-[#1E1E1E] hover:bg-[#282828] border border-[#5A5A5A] rounded-lg text-muted hover:text-white transition-colors"
+                className="h-9 px-3 text-[12px] font-medium bg-surface-2 hover:bg-surface-3 border border-line-strong rounded-lg text-muted hover:text-white transition-colors"
               >
                 Vérifier les fuites de données
               </button>
@@ -244,14 +253,14 @@ export default function PasswordsPage() {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="vault-modal-title"
-                className="bg-[#161616] border border-[#2A2A2A] rounded-2xl shadow-2xl w-[380px] max-w-[calc(100vw-32px)] p-6"
+                className="bg-surface-1 border border-line rounded-2xl shadow-2xl w-[380px] max-w-[calc(100vw-32px)] p-6"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 id="vault-modal-title" className="text-[15px] font-semibold text-white">
                     {vaultMode === 'export' ? 'Exporter le coffre' : 'Importer un coffre'}
                   </h2>
-                  <button type="button" onClick={closeVaultModal} aria-label="Fermer la boîte de dialogue" className="text-muted hover:text-white p-1.5 rounded hover:bg-[#2A2A2A]"><X size={16} /></button>
+                  <button type="button" onClick={closeVaultModal} aria-label="Fermer la boîte de dialogue" className="text-muted hover:text-white p-1.5 rounded hover:bg-surface-3"><X size={16} /></button>
                 </div>
                 <p className="text-[12px] text-muted mb-4 leading-relaxed">
                   {vaultMode === 'export'
@@ -268,7 +277,7 @@ export default function PasswordsPage() {
                     autoComplete={vaultMode === 'export' ? 'new-password' : 'current-password'}
                     aria-invalid={tooShort || undefined}
                     aria-describedby={tooShort ? 'vault-master-error' : undefined}
-                    className="w-full h-10 px-3 bg-[#0A0A0A] border border-[#5A5A5A] rounded-lg text-[13px] text-ink"
+                    className="w-full h-10 px-3 bg-surface-0 border border-line-strong rounded-lg text-[13px] text-ink"
                   />
                   {tooShort && <p id="vault-master-error" className="text-[12px] text-red-400 mt-1.5">Utilisez au moins 8 caractères.</p>}
 
@@ -283,7 +292,7 @@ export default function PasswordsPage() {
                         autoComplete="new-password"
                         aria-invalid={mismatch || undefined}
                         aria-describedby={mismatch ? 'vault-confirm-error' : undefined}
-                        className="w-full h-10 px-3 bg-[#0A0A0A] border border-[#5A5A5A] rounded-lg text-[13px] text-ink"
+                        className="w-full h-10 px-3 bg-surface-0 border border-line-strong rounded-lg text-[13px] text-ink"
                       />
                       {mismatch && <p id="vault-confirm-error" className="text-[12px] text-red-400 mt-1.5">Les mots de passe ne correspondent pas.</p>}
                     </>
@@ -317,11 +326,11 @@ export default function PasswordsPage() {
                 aria-modal="true"
                 aria-labelledby="generator-title"
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[#161616] border border-[#2A2A2A] rounded-2xl shadow-2xl w-[400px] max-w-[calc(100vw-32px)] p-6"
+                className="bg-surface-1 border border-line rounded-2xl shadow-2xl w-[400px] max-w-[calc(100vw-32px)] p-6"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 id="generator-title" className="text-[15px] font-semibold text-white">Générateur de mot de passe</h2>
-                  <button type="button" onClick={() => setGeneratorOpen(false)} aria-label="Fermer" className="text-muted hover:text-white p-1.5 rounded hover:bg-[#2A2A2A]"><X size={16} /></button>
+                  <button type="button" onClick={() => setGeneratorOpen(false)} aria-label="Fermer" className="text-muted hover:text-white p-1.5 rounded hover:bg-surface-3"><X size={16} /></button>
                 </div>
                 <PasswordGenerator />
               </motion.div>
@@ -336,7 +345,7 @@ export default function PasswordsPage() {
           )}
         </AnimatePresence>
 
-        <div className="flex items-center h-10 px-3 mb-8 bg-[#121212] border border-[#5A5A5A] rounded-xl focus-ring-within">
+        <div className="flex items-center h-10 px-3 mb-8 bg-surface-1 border border-line-strong rounded-xl focus-ring-within">
           <Search size={14} className="text-muted mr-2 shrink-0" aria-hidden="true" />
           <input
             value={query}
@@ -349,7 +358,7 @@ export default function PasswordsPage() {
 
         {loading ? (
           <div role="status" aria-label="Chargement des mots de passe…" className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
-            {[0, 1, 2].map(i => <div key={i} className="h-[110px] rounded-xl bg-[#121212] border border-[#1E1E1E] animate-pulse" aria-hidden="true" />)}
+            {[0, 1, 2].map(i => <div key={i} className="h-[110px] rounded-xl bg-surface-1 border border-line animate-pulse" aria-hidden="true" />)}
           </div>
         ) : error ? (
           <InlineError message="Impossible de charger les mots de passe." onRetry={load} />
@@ -360,17 +369,13 @@ export default function PasswordsPage() {
                 <h2 className="text-[12px] text-muted mb-3 font-semibold uppercase tracking-wider truncate">{domain}</h2>
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
                   {grouped[domain].map(c => (
-                    <div key={c.id} className="group relative flex flex-col p-3.5 rounded-xl bg-[#121212] border border-[#1E1E1E] hover:border-[#2A2A2A] hover:bg-[#161616] focus-within:border-[#3A3A3A] transition-colors">
+                    <div key={c.id} className="group relative flex flex-col p-3.5 rounded-xl bg-surface-1 border border-line hover:border-line hover:bg-surface-1 focus-within:border-line transition-colors">
                       <button
                         type="button"
-                        onClick={() => handleDelete(c.id)}
-                        title={confirmDeleteId === c.id ? "Confirmer la suppression ?" : "Supprimer"}
-                        aria-label={confirmDeleteId === c.id ? "Confirmer la suppression définitive du compte" : "Supprimer cet identifiant"}
-                        className={`absolute top-2 right-2 p-1.5 rounded-md transition-all ${
-                          confirmDeleteId === c.id
-                            ? 'bg-red-700 text-white opacity-100 shadow-md'
-                            : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 text-muted hover:bg-[#333] hover:text-red-400'
-                        }`}
+                        onClick={() => handleDelete(c)}
+                        title="Supprimer"
+                        aria-label={`Supprimer l'identifiant ${c.username} sur ${c.domain}`}
+                        className="absolute top-2 right-2 p-1.5 rounded-md transition-colors text-muted hover:bg-surface-3 hover:text-red-400"
                       >
                         <Trash2 size={12} />
                       </button>
@@ -378,14 +383,13 @@ export default function PasswordsPage() {
                         type="button"
                         onClick={() => setEditing(c)}
                         title="Modifier"
-                        aria-label={`Modifier l'identifiant ${c.username}`}
-                        className="absolute top-2 right-9 p-1.5 rounded-md transition-all opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 text-muted hover:bg-[#333] hover:text-white"
+                        aria-label={`Modifier l'identifiant ${c.username} sur ${c.domain}`}
+                        className="absolute top-2 right-9 p-1.5 rounded-md transition-colors text-muted hover:bg-surface-3 hover:text-white"
                       >
                         <Pencil size={12} />
                       </button>
-                      <span className="sr-only" role="status">{confirmDeleteId === c.id ? 'Cliquez à nouveau pour confirmer la suppression.' : ''}</span>
 
-                      <div className="w-9 h-9 rounded-lg bg-[#1A1A1A] border border-[#242424] flex items-center justify-center mb-2.5 shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-surface-2 border border-line flex items-center justify-center mb-2.5 shrink-0">
                         <Favicon src={c.favicon} size={15} />
                       </div>
 
@@ -393,37 +397,32 @@ export default function PasswordsPage() {
                         type="button"
                         onClick={() => { window.tora?.copyCredentialUsername(c.username); showToast('Identifiant copié'); }}
                         title="Cliquer pour copier l'identifiant"
-                        aria-label={`Copier l'identifiant ${c.username}`}
-                        className="text-[12px] text-ink font-medium truncate text-left hover:text-indigo-400 transition-colors pr-14"
+                        aria-label={`Copier l'identifiant ${c.username} (${c.domain})`}
+                        className="text-[12px] text-ink font-medium truncate text-left hover:text-indigo-400 transition-colors pr-14 py-1"
                       >
                         {c.username}
                       </button>
 
                       {(health[c.id]?.weak || health[c.id]?.reused || (breaches[c.id] ?? 0) > 0) && (
                         <div className="flex flex-wrap gap-1 mt-1.5">
-                          {(breaches[c.id] ?? 0) > 0 && <span className="px-1.5 py-0.5 rounded bg-red-500/15 border border-red-500/40 text-[11px] text-red-300">Compromis ({breaches[c.id].toLocaleString('fr-FR')} fuites)</span>}
-                          {health[c.id]?.weak && <span className="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-[11px] text-amber-300">Faible</span>}
-                          {health[c.id]?.reused && <span className="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-[11px] text-amber-300">Réutilisé</span>}
+                          {(breaches[c.id] ?? 0) > 0 && <span className="px-1.5 py-0.5 rounded bg-red-500/15 border border-red-500/40 text-[12px] text-red-300">Compromis ({breaches[c.id].toLocaleString('fr-FR')} fuites)</span>}
+                          {health[c.id]?.weak && <span className="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-[12px] text-amber-300">Faible</span>}
+                          {health[c.id]?.reused && <span className="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-[12px] text-amber-300">Réutilisé</span>}
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#1E1E1E]">
-                        <button
-                          type="button"
-                          onClick={() => toggleReveal(c.id)}
-                          title={revealed[c.id] ? 'Masquer' : 'Afficher le mot de passe'}
-                          aria-label={revealed[c.id] ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                          className="text-[12px] font-mono text-muted hover:text-white transition-colors truncate"
-                        >
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-line">
+                        <span className="text-[12px] font-mono text-muted truncate py-1">
                           {revealed[c.id] ? revealed[c.id] : '••••••••••'}
-                        </button>
-                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0">
+                        </span>
+                        <div className="flex items-center gap-0.5 shrink-0">
                           <button
                             type="button"
                             onClick={() => toggleReveal(c.id)}
                             title={revealed[c.id] ? 'Masquer' : 'Afficher'}
-                            aria-label={revealed[c.id] ? "Masquer" : "Afficher"}
-                            className="p-1.5 rounded text-muted hover:bg-[#222] hover:text-ink transition-colors"
+                            aria-label={`${revealed[c.id] ? 'Masquer' : 'Afficher'} le mot de passe de ${c.username} sur ${c.domain}`}
+                            aria-pressed={!!revealed[c.id]}
+                            className="p-1.5 rounded text-muted hover:bg-surface-3 hover:text-ink transition-colors"
                           >
                             {revealed[c.id] ? <EyeOff size={12} /> : <Eye size={12} />}
                           </button>
@@ -431,8 +430,8 @@ export default function PasswordsPage() {
                             type="button"
                             onClick={() => { window.tora?.copyCredentialPassword(c.id); showToast('Mot de passe copié (effacé après 30 s)'); }}
                             title="Copier le mot de passe (effacé après 30s)"
-                            aria-label="Copier le mot de passe"
-                            className="p-1.5 rounded text-muted hover:bg-[#222] hover:text-indigo-400 transition-colors"
+                            aria-label={`Copier le mot de passe de ${c.username} sur ${c.domain}`}
+                            className="p-1.5 rounded text-muted hover:bg-surface-3 hover:text-indigo-400 transition-colors"
                           >
                             <Copy size={12} />
                           </button>

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Info, EyeOff, Printer, FileDown, Code, Undo2, Search, Shield, Settings, History, Download, Bookmark, Moon, Lock, Sparkles, Terminal, Camera, QrCode, Tv, UserCheck, Copy } from 'lucide-react';
+import { Info, EyeOff, Printer, FileDown, Code, Undo2, Search, Shield, Settings, History, Download, Bookmark, Moon, Lock, Plus, Trash2, Film, Terminal, Camera, QrCode, Tv, UserCheck, Copy } from 'lucide-react';
 import { popIn } from '../lib/motion';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { useVideoDownload } from '../hooks/useVideoDownload';
 
 interface CommandItem {
   id: string;
@@ -17,9 +18,11 @@ interface CommandPaletteModalProps {
   onClose: () => void;
   onOpenQrCode?: () => void;
   onOpenFakePersona?: () => void;
+  activeTabUrl?: string;
 }
 
-export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onOpenFakePersona }: CommandPaletteModalProps) {
+export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onOpenFakePersona, activeTabUrl }: CommandPaletteModalProps) {
+  const { extract } = useVideoDownload();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -28,7 +31,7 @@ export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onO
       id: 'newtab',
       title: 'Créer un nouvel onglet',
       category: 'Onglets',
-      icon: Sparkles,
+      icon: Plus,
       action: () => { window.tora?.createTab(); onClose(); },
     },
     {
@@ -49,7 +52,7 @@ export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onO
       id: 'clear-data',
       title: 'Effacer les données de navigation…',
       category: 'Confidentialité',
-      icon: History,
+      icon: Trash2,
       action: () => { window.tora?.createTab('tora://settings'); onClose(); },
     },
     {
@@ -158,6 +161,13 @@ export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onO
       action: () => { onOpenQrCode?.(); onClose(); },
     },
     {
+      id: 'video-download',
+      title: 'Télécharger la vidéo de la page',
+      category: 'Médias',
+      icon: Film,
+      action: () => { extract(activeTabUrl); onClose(); },
+    },
+    {
       id: 'pip',
       title: 'Activer le mode Image dans l\'image (PiP)',
       category: 'Médias',
@@ -166,18 +176,25 @@ export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onO
     },
     {
       id: 'fake-persona',
-      title: 'Générer une fausse identité (Fake Persona)',
+      title: 'Générer une fausse identité',
       category: 'Confidentialité',
       icon: UserCheck,
       action: () => { onOpenFakePersona?.(); onClose(); },
     },
   ];
 
-  const filtered = commands.filter(c => c.title.toLowerCase().includes(query.toLowerCase()));
+  const isRealPage = !!activeTabUrl && !activeTabUrl.startsWith('tora://');
+  const filtered = commands.filter(c => (c.id !== 'video-download' || isRealPage) && c.title.toLowerCase().includes(query.toLowerCase()));
 
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);
+
+  // Keep the highlighted command in view when arrowing through a long list.
+  useEffect(() => {
+    document.getElementById(`palette-opt-${filtered[selectedIndex]?.id}`)?.scrollIntoView({ block: 'nearest' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndex]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -219,22 +236,27 @@ export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onO
           aria-modal="true"
           aria-label="Palette de commandes"
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-xl bg-[#121216]/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl"
+          className="w-full max-w-xl bg-surface-1/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl"
         >
           <div className="flex items-center px-4 py-3 border-b border-white/10">
             <Search size={18} className="text-indigo-400 mr-3 shrink-0" aria-hidden="true" />
             <input
               type="text"
+              role="combobox"
+              aria-expanded="true"
+              aria-controls="palette-listbox"
+              aria-autocomplete="list"
+              aria-activedescendant={filtered[selectedIndex] ? `palette-opt-${filtered[selectedIndex].id}` : undefined}
               aria-label="Rechercher une commande"
               placeholder="Tapez une commande ou une action (Ctrl + K)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="w-full bg-transparent text-white text-[14px] outline-none placeholder-subtle"
             />
-            <span className="text-[10px] font-medium text-muted bg-white/5 px-2 py-1 rounded-md border border-white/10">ESC</span>
+            <span className="text-[12px] font-medium text-muted bg-white/5 px-2 py-1 rounded-md border border-white/10">ESC</span>
           </div>
 
-          <div role="listbox" aria-label="Commandes disponibles" className="max-h-80 overflow-y-auto p-2 space-y-1">
+          <div id="palette-listbox" role="listbox" aria-label="Commandes disponibles" className="max-h-80 overflow-y-auto p-2 space-y-1">
             {filtered.length === 0 ? (
               <div className="p-6 text-center text-muted text-[13px]">
                 Aucune commande trouvée pour "{query}".
@@ -246,7 +268,9 @@ export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onO
                 return (
                   <button
                     key={item.id}
+                    id={`palette-opt-${item.id}`}
                     type="button"
+                    tabIndex={-1}
                     role="option"
                     aria-selected={isSelected}
                     onClick={item.action}
@@ -265,7 +289,7 @@ export default function CommandPaletteModal({ isOpen, onClose, onOpenQrCode, onO
                         {item.title}
                       </span>
                     </div>
-                    <span className="text-[10px] uppercase tracking-wider text-muted font-semibold">
+                    <span className="text-[12px] uppercase tracking-wider text-muted font-semibold">
                       {item.category}
                     </span>
                   </button>

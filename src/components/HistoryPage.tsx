@@ -7,6 +7,7 @@ import { cardHover, buttonPress, popIn } from '../lib/motion';
 import CardGridSkeleton from './CardGridSkeleton';
 import InlineError from './InlineError';
 import { useUndoableDelete } from '../hooks/useUndoableDelete';
+import { useAutoReset } from '../hooks/useAutoReset';
 
 function formatFriendlyDate(timestamp: number): string {
   const d = new Date(timestamp);
@@ -25,6 +26,7 @@ export default function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [confirmClear, setConfirmClear] = useState(false);
+  useAutoReset(confirmClear, false, () => setConfirmClear(false), 4000);
   const [error, setError] = useState(false);
   const undoableDelete = useUndoableDelete();
 
@@ -53,7 +55,6 @@ export default function HistoryPage() {
   const handleClear = async () => {
     if (!confirmClear) {
       setConfirmClear(true);
-      setTimeout(() => setConfirmClear(false), 4000);
       return;
     }
     await window.tora?.clearHistory();
@@ -77,23 +78,23 @@ export default function HistoryPage() {
   }, [filteredHistory]);
 
   return (
-    <motion.div {...popIn} className="flex-1 overflow-y-auto bg-[#050505]">
+    <motion.div {...popIn} className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-5xl mx-auto px-10 py-16">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-[28px] font-semibold text-white mb-1 font-display">Historique</h1>
             <p className="text-[13px] text-muted">Vos pages visitées récemment</p>
           </div>
           {history.length > 0 && (
-            <div className="flex items-center gap-3">
-              <div className="relative w-64">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative w-64 max-w-full">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Rechercher..."
                   aria-label="Rechercher dans l'historique"
-                  className="w-full h-9 pl-9 pr-8 bg-[#121212] border border-[#5A5A5A] rounded-lg text-[12px] text-ink placeholder-subtle focus:outline-none focus:border-indigo-500/50"
+                  className="w-full h-9 pl-9 pr-8 bg-surface-1 border border-line-strong rounded-lg text-[12px] text-ink placeholder-subtle focus:outline-none focus:border-indigo-500/50"
                 />
                 <Search size={14} className="absolute left-3 top-2.5 text-subtle" aria-hidden="true" />
                 {searchQuery && (
@@ -112,7 +113,7 @@ export default function HistoryPage() {
                 <button
                   type="button"
                   onClick={() => setConfirmClear(false)}
-                  className="text-[12px] font-medium px-3 py-2 bg-[#1A1A1A] hover:bg-[#252525] rounded-lg border border-[#333] text-muted transition-colors"
+                  className="text-[12px] font-medium px-3 py-2 bg-surface-2 hover:bg-surface-3 rounded-lg border border-line text-muted transition-colors"
                 >
                   Annuler
                 </button>
@@ -124,7 +125,7 @@ export default function HistoryPage() {
                 className={`text-[12px] font-medium px-3 py-2 rounded-lg border transition-colors shrink-0 ${
                   confirmClear
                     ? 'bg-red-700 hover:bg-red-600 border-red-600 text-white shadow-lg shadow-red-600/30'
-                    : 'bg-[#161616] hover:bg-red-500/10 border-[#222] hover:border-red-500/30 text-muted hover:text-red-400'
+                    : 'bg-surface-1 hover:bg-red-500/10 border-line hover:border-red-500/30 text-muted hover:text-red-400'
                 }`}
               >
                 {confirmClear ? 'Confirmer ?' : 'Effacer tout'}
@@ -157,7 +158,7 @@ export default function HistoryPage() {
                         key={entry.id}
                         layout
                         {...cardHover}
-                        className="group relative rounded-xl bg-[#101014] border border-white/5 hover:border-indigo-500/20 focus-within:border-indigo-500/40 transition-colors"
+                        className="group relative rounded-xl bg-surface-1 border border-white/5 hover:border-indigo-500/20 focus-within:border-indigo-500/40 transition-colors"
                       >
                         <button
                           type="button"
@@ -165,9 +166,9 @@ export default function HistoryPage() {
                           aria-label={`Ouvrir ${entry.title || entry.url} dans un nouvel onglet`}
                           className="flex flex-col w-full p-3.5 text-left rounded-xl cursor-pointer"
                         >
-                          <span className="flex items-center space-x-2.5 mb-2.5 pr-7">
+                          <span className="flex items-start space-x-2.5 mb-2.5 pr-7">
                             <Favicon src={entry.favicon} size={16} />
-                            <span className="text-[13px] font-medium text-ink group-hover:text-white truncate">
+                            <span className="text-[13px] font-medium text-ink group-hover:text-white line-clamp-2 break-words min-w-0">
                               {entry.title || entry.url}
                             </span>
                           </span>
@@ -176,7 +177,7 @@ export default function HistoryPage() {
                         <motion.button
                           {...buttonPress}
                           type="button"
-                          aria-label="Supprimer cette entrée de l'historique"
+                          aria-label={`Supprimer « ${entry.title || entry.url} » de l'historique`}
                           title="Supprimer"
                           onClick={(e) => handleDelete(e, entry)}
                           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 p-2 rounded-md text-muted hover:bg-white/10 hover:text-red-400 transition-all"

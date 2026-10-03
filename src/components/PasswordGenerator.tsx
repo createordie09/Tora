@@ -75,14 +75,14 @@ export default function PasswordGenerator({ onUse, useLabel = 'Utiliser ce mot d
       <div className="flex items-center gap-2">
         <output
           aria-label="Mot de passe généré"
-          className="flex-1 min-w-0 h-10 px-3 flex items-center bg-[#0A0A0A] border border-[#5A5A5A] rounded-lg font-mono text-[13px] text-ink break-all overflow-hidden"
+          className="flex-1 min-w-0 h-10 px-3 flex items-center bg-surface-0 border border-line-strong rounded-lg font-mono text-[13px] text-ink break-all overflow-hidden"
         >
           {password}
         </output>
-        <button type="button" onClick={regenerate} aria-label="Générer un autre mot de passe" title="Régénérer" className="h-10 w-10 flex items-center justify-center rounded-lg border border-[#5A5A5A] text-muted hover:text-white hover:bg-white/5 transition-colors shrink-0">
+        <button type="button" onClick={regenerate} aria-label="Générer un autre mot de passe" title="Régénérer" className="h-10 w-10 flex items-center justify-center rounded-lg border border-line-strong text-muted hover:text-white hover:bg-white/5 transition-colors shrink-0">
           <RefreshCw size={15} />
         </button>
-        <button type="button" onClick={copy} aria-label="Copier le mot de passe généré" title="Copier" className="h-10 w-10 flex items-center justify-center rounded-lg border border-[#5A5A5A] text-muted hover:text-white hover:bg-white/5 transition-colors shrink-0">
+        <button type="button" onClick={copy} aria-label="Copier le mot de passe généré" title="Copier" className="h-10 w-10 flex items-center justify-center rounded-lg border border-line-strong text-muted hover:text-white hover:bg-white/5 transition-colors shrink-0">
           <Copy size={15} />
         </button>
       </div>
