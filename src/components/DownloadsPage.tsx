@@ -7,7 +7,6 @@ import { popIn, cardHover, buttonPress } from '../lib/motion';
 import CardGridSkeleton from './CardGridSkeleton';
 import InlineError from './InlineError';
 import { useUndoableDelete } from '../hooks/useUndoableDelete';
-import { useAutoReset } from '../hooks/useAutoReset';
 import Button from './Button';
 
 function formatBytes(bytes: number): string {
@@ -24,8 +23,6 @@ export default function DownloadsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [hidden, setHidden] = useState<string[]>([]);
-  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
-  useAutoReset(confirmCancelId, null, () => setConfirmCancelId(null), 4000);
   const undoableDelete = useUndoableDelete();
 
   const load = () => {
@@ -47,13 +44,6 @@ export default function DownloadsPage() {
   const hasFinished = visible.some(d => d.state !== 'progressing');
 
   const removeFromList = (dl: DownloadItem) => {
-    if (dl.state === 'progressing') {
-      // Cancelling a running download cannot be undone: ask first.
-      if (confirmCancelId !== dl.id) { setConfirmCancelId(dl.id); return; }
-      setConfirmCancelId(null);
-      window.tora?.removeDownload(dl.id);
-      return;
-    }
     undoableDelete(
       `download:${dl.id}`,
       `« ${dl.filename} » retiré de la liste`,
@@ -118,15 +108,17 @@ export default function DownloadsPage() {
                            <AlertCircle size={9} className="text-red-400" aria-hidden="true" />}
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFromList(dl)}
-                        aria-label={confirmCancelId === dl.id ? `Confirmer l'annulation de ${dl.filename}` : `Retirer ${dl.filename} de la liste`}
-                        title={inProgress ? 'Annuler et retirer' : 'Retirer de la liste'}
-                        className={confirmCancelId === dl.id ? 'text-[12px] font-medium px-2 py-1.5 rounded bg-red-700 text-white' : iconButton}
-                      >
-                        {confirmCancelId === dl.id ? 'Annuler ?' : <X size={13} />}
-                      </button>
+                      {!inProgress && (
+                        <button
+                          type="button"
+                          onClick={() => removeFromList(dl)}
+                          aria-label={`Retirer ${dl.filename} de la liste`}
+                          title="Retirer de la liste"
+                          className={iconButton}
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
                     </div>
 
                     <span className="text-[12px] text-ink font-medium truncate">{dl.filename}</span>

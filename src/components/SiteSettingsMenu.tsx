@@ -43,7 +43,7 @@ export default function SiteSettingsMenu({ domain, security }: { domain: string;
   const grantedPermissions = Object.entries(ds.permissions || {}).filter(([, v]) => v === 'granted');
 
   return (
-    <div className="relative">
+    <div className="relative @max-[260px]:hidden">
       <button
         type="button"
         aria-label="Réglages et permissions du site"

@@ -166,7 +166,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
 
   return (
     <div className="flex items-center h-14 px-5 bg-surface-0/85 backdrop-blur-xl border-b border-white/10 app-region-no-drag shadow-lg select-none">
-      <div className="flex items-center space-x-2 mr-4 text-muted">
+      <div className="flex items-center space-x-1 mr-2 text-muted shrink-0">
         <motion.button
           {...iconButtonPress}
           onClick={() => activeTab && window.tora?.goBack(activeTab.id)}
@@ -197,8 +197,8 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
         </motion.button>
       </div>
 
-      <div className="relative flex-1 min-w-[140px]">
-      <form onSubmit={handleSubmit} className="w-full flex items-center h-10 px-4 bg-surface-1/90 border border-line-strong rounded-full text-[13px] text-ink focus-ring-within transition-all duration-200">
+      <div className="@container relative flex-1 min-w-[72px]">
+      <form onSubmit={handleSubmit} className="w-full min-w-0 overflow-hidden flex items-center h-10 px-4 bg-surface-1/90 border border-line-strong rounded-full text-[13px] text-ink focus-ring-within transition-all duration-200">
         <button
           type="button"
           aria-label={`Protections de Tora${hasBlocks ? ` : ${totalBlocks} élément${totalBlocks > 1 ? 's' : ''} bloqué${totalBlocks > 1 ? 's' : ''}` : ''}`}
@@ -227,7 +227,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
             role="img"
             aria-label={securityLabel}
             title={securityLabel}
-            className={`flex items-center gap-1 mr-2 shrink-0 text-[12px] font-medium ${security === 'secure' ? 'text-muted' : security === 'insecure' ? 'text-amber-300' : 'text-red-400'}`}
+            className={`flex items-center gap-1 mr-2 shrink-0 @max-[260px]:hidden text-[12px] font-medium ${security === 'secure' ? 'text-muted' : security === 'insecure' ? 'text-amber-300' : 'text-red-400'}`}
           >
             {security === 'secure' ? <Lock size={13} aria-hidden="true" /> : security === 'insecure' ? <LockOpen size={13} aria-hidden="true" /> : <ShieldAlert size={13} aria-hidden="true" />}
             {security === 'insecure' && <span>Non sécurisé</span>}
@@ -255,7 +255,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
           spellCheck={false}
           aria-label="Adresse web ou recherche"
           placeholder="Rechercher ou entrer une adresse"
-          className="w-full bg-transparent text-ink placeholder-muted focus:outline-none outline-none border-none ring-0 focus:ring-0 shadow-none px-1"
+          className="w-full min-w-0 bg-transparent text-ink placeholder-muted focus:outline-none outline-none border-none ring-0 focus:ring-0 shadow-none px-1"
         />
 
         {inputUrl && (
@@ -264,7 +264,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
             aria-label="Effacer la saisie"
             title="Effacer"
             onClick={() => { setInputUrl(''); inputRef.current?.focus(); }}
-            className="p-1.5 mr-1 text-muted hover:text-ink hover:bg-white/10 rounded-md transition-colors shrink-0"
+            className="p-1.5 mr-1 text-muted hover:text-ink hover:bg-white/10 rounded-md transition-colors shrink-0 @max-[260px]:hidden"
           >
             <X size={12} />
           </button>
@@ -276,7 +276,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
             aria-label={activeTab?.isBookmarked ? 'Retirer des favoris' : 'Ajouter aux favoris'}
             title={activeTab?.isBookmarked ? 'Retirer des favoris' : 'Ajouter aux favoris'}
             onClick={handleToggleBookmark}
-            className="p-2 mr-1 hover:bg-white/10 rounded-lg transition-colors shrink-0"
+            className="p-2 mr-1 hover:bg-white/10 rounded-lg transition-colors shrink-0 @max-[260px]:hidden"
           >
             <Star size={14} className={activeTab?.isBookmarked ? 'text-amber-400' : 'text-muted hover:text-ink'} fill={activeTab?.isBookmarked ? 'currentColor' : 'none'} />
           </button>
@@ -288,7 +288,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
             aria-label={activeTab?.isReaderMode ? 'Quitter le mode lecture' : 'Activer le mode lecture'}
             title="Mode lecture"
             onClick={() => window.tora?.toggleReaderMode()}
-            className="p-1.5 mr-1 hover:bg-white/10 rounded-lg transition-colors shrink-0"
+            className="p-1.5 mr-1 hover:bg-white/10 rounded-lg transition-colors shrink-0 @max-[260px]:hidden"
           >
             <BookOpen size={14} className={activeTab?.isReaderMode ? 'text-indigo-400' : 'text-muted hover:text-ink'} />
           </button>
@@ -331,7 +331,7 @@ export default function Toolbar({ activeTab, settings, menuOpen, setMenuOpen, on
       )}
       </div>
 
-      <div className="flex items-center space-x-4 ml-6">
+      <div className="flex items-center space-x-2 ml-3 shrink-0">
         {activeTab?.container && (
           <span
             className="flex items-center gap-1.5 h-7 px-2.5 rounded-full border text-[12px] font-medium text-ink"

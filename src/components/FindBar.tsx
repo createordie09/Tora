@@ -27,6 +27,11 @@ export default function FindBar({ isVerticalTabsEnabled }: FindBarProps) {
     return unsub;
   }, []);
 
+  // Focus once the bar is actually mounted (a timeout can fire before it renders).
+  useEffect(() => {
+    if (visible) { inputRef.current?.focus(); inputRef.current?.select(); }
+  }, [visible]);
+
   useEffect(() => {
     const unsub = window.tora?.onFindInPageResult((r) => setResult(r));
     return unsub;

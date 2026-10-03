@@ -46,13 +46,13 @@ export default function BookmarksPage() {
   return (
     <motion.div {...popIn} className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-5xl mx-auto px-10 py-16">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-[28px] font-semibold text-white mb-1 font-display">Favoris</h1>
             <p className="text-[13px] text-muted">Pages que vous avez enregistrées</p>
           </div>
           {bookmarks.length > 0 && (
-            <div className="relative w-64">
+            <div className="relative w-64 max-w-full">
               <input
                 type="text"
                 value={searchQuery}

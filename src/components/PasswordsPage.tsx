@@ -178,9 +178,9 @@ export default function PasswordsPage() {
   return (
     <div className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-5xl mx-auto px-10 py-16">
-        <div className="flex items-start justify-between mb-1">
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
           <h1 className="text-[28px] font-semibold text-white font-display">Mots de passe</h1>
-          <div className="flex items-center space-x-2 mt-1.5">
+          <div className="flex flex-wrap items-center gap-2 mt-1.5">
             <button type="button" onClick={() => setGeneratorOpen(true)} title="Générer un mot de passe fort" className="flex items-center space-x-1.5 text-[12px] font-medium px-3 py-2 bg-surface-1 hover:bg-surface-2 rounded-lg border border-line-strong transition-colors text-muted hover:text-white">
               <Wand2 size={12} aria-hidden="true" /><span>Générateur</span>
             </button>

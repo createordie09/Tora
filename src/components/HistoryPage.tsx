@@ -80,14 +80,14 @@ export default function HistoryPage() {
   return (
     <motion.div {...popIn} className="flex-1 overflow-y-auto bg-surface-0">
       <div className="max-w-5xl mx-auto px-10 py-16">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-[28px] font-semibold text-white mb-1 font-display">Historique</h1>
             <p className="text-[13px] text-muted">Vos pages visitées récemment</p>
           </div>
           {history.length > 0 && (
-            <div className="flex items-center gap-3">
-              <div className="relative w-64">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative w-64 max-w-full">
                 <input
                   type="text"
                   value={searchQuery}

@@ -364,7 +364,7 @@ export function ContainersSection() {
         ))}
         <form
           onSubmit={(e) => { e.preventDefault(); add(); }}
-          className="flex items-center gap-2 p-4"
+          className="flex flex-wrap items-center gap-2 p-4"
         >
           <label htmlFor="new-container" className="sr-only">Nom du nouveau conteneur</label>
           <input
